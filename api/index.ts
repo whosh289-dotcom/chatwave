@@ -42,27 +42,25 @@ async function sendEmail(env: Bindings, to: string, subject: string, body: strin
 }
 
 app.post('/api/signup', async (c) => {
-  const { email, password, username } = await c.req.json();
-  if (!email || !password || !username) return c.json({ error: 'Missing fields' }, 400);
+  const { username, password, securityQuestion, securityAnswer } = await c.req.json();
+  if (!username || !password || !securityQuestion || !securityAnswer) {
+    return c.json({ error: 'Missing fields' }, 400);
+  }
 
   const hashedPassword = await hashPassword(password);
+  const hashedAnswer = await hashPassword(securityAnswer.toLowerCase().trim());
   const id = crypto.randomUUID();
   const profileId = crypto.randomUUID();
-  const token = crypto.randomUUID();
-  const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 mins
 
   try {
-    // Ensure tables exist
+    // Ensure tables exist (fallback)
     await c.env.DB.prepare(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
+        username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        email_confirmed BOOLEAN NOT NULL DEFAULT 0,
-        confirmation_token TEXT,
-        confirmation_token_expires DATETIME,
-        reset_token TEXT,
-        reset_token_expires DATETIME,
+        security_question TEXT NOT NULL,
+        security_answer TEXT NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `).run();
@@ -83,165 +81,82 @@ app.post('/api/signup', async (c) => {
 
     // Insert user
     await c.env.DB.prepare(
-      "INSERT INTO users (id, email, password, email_confirmed, confirmation_token, confirmation_token_expires) VALUES (?, ?, ?, 0, ?, ?)"
-    ).bind(id, email, hashedPassword, token, expires).run();
+      "INSERT INTO users (id, username, password, security_question, security_answer) VALUES (?, ?, ?, ?, ?)"
+    ).bind(id, username.toLowerCase(), hashedPassword, securityQuestion, hashedAnswer).run();
 
-    // Insert profile with username
+    // Insert profile
     await c.env.DB.prepare(
       "INSERT INTO profiles (id, user_id, display_name, username) VALUES (?, ?, ?, ?)"
     ).bind(profileId, id, username, username.toLowerCase()).run();
 
-    const url = new URL(c.req.url);
-    const confirmLink = `${url.origin}/auth?type=confirm&token=${token}`;
-    
-    const emailHtml = `
-      <div style="font-family: sans-serif; max-w: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-        <h2 style="color: #4F46E5; margin-bottom: 20px;">Welcome to Chatwave!</h2>
-        <p style="color: #333; font-size: 16px; line-height: 1.5;">Hi <b>${username}</b>,</p>
-        <p style="color: #333; font-size: 16px; line-height: 1.5;">Thanks for signing up. Please confirm your email address by clicking the button below. This link will expire in <b>30 minutes</b>.</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${confirmLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Confirm Email</a>
-        </div>
-        <p style="color: #777; font-size: 14px;">If the button doesn't work, copy and paste this link into your browser:<br><br><a href="${confirmLink}" style="color: #4F46E5;">${confirmLink}</a></p>
-      </div>
-    `;
-
-    await sendEmail(
-      c.env, 
-      email, 
-      "Action Required: Confirm your Chatwave account", 
-      emailHtml
-    );
-
-    return c.json({ user: { id, email, username } }, 200);
+    return c.json({ user: { id, username } }, 200);
   } catch (e: any) {
-    if (e.message.includes('UNIQUE') && e.message.includes('users')) {
-      return c.json({ error: 'Email already exists' }, 400);
-    }
-    if (e.message.includes('UNIQUE') && e.message.includes('profiles')) {
-      return c.json({ error: 'Username already taken' }, 400);
+    if (e.message.includes('UNIQUE')) {
+      return c.json({ error: 'Username already exists' }, 400);
     }
     return c.json({ error: e.message }, 500);
   }
 });
 
-app.post('/api/confirm', async (c) => {
-  const { token } = await c.req.json();
-  if (!token) return c.json({ error: 'Missing token' }, 400);
-
-  const user: any = await c.env.DB.prepare(
-    "SELECT id, confirmation_token_expires FROM users WHERE confirmation_token = ?"
-  ).bind(token).first();
-
-  if (!user) {
-    return c.json({ error: 'Invalid confirmation token' }, 400);
-  }
-
-  if (user.confirmation_token_expires && new Date(user.confirmation_token_expires) < new Date()) {
-    return c.json({ error: 'Confirmation link has expired (30 minute limit). Please sign up again.' }, 400);
-  }
-
-  await c.env.DB.prepare(
-    "UPDATE users SET email_confirmed = 1, confirmation_token = NULL, confirmation_token_expires = NULL WHERE id = ?"
-  ).bind(user.id).run();
-
-  return c.json({ success: true }, 200);
-});
-
 app.post('/api/login', async (c) => {
-  const { email, password } = await c.req.json();
-  if (!email || !password) return c.json({ error: 'Missing fields' }, 400);
+  const { username, password } = await c.req.json();
+  if (!username || !password) return c.json({ error: 'Missing fields' }, 400);
 
   try {
     const hashedPassword = await hashPassword(password);
     
-    // Check if columns exist by selecting them (in case migration didn't run on an old db)
-    // We will just try to fetch them. If email_confirmed doesn't exist, we assume they are confirmed (legacy).
-    let user;
-    try {
-      user = await c.env.DB.prepare(
-        "SELECT id, email, email_confirmed FROM users WHERE email = ? AND password = ?"
-      ).bind(email, hashedPassword).first();
-      
-      if (user && user.email_confirmed === 0) {
-        return c.json({ error: 'Please check your email and confirm your account before logging in.' }, 403);
-      }
-    } catch (err) {
-      // legacy fallback if column doesn't exist
-      user = await c.env.DB.prepare(
-        "SELECT id, email FROM users WHERE email = ? AND password = ?"
-      ).bind(email, hashedPassword).first();
-    }
+    const user: any = await c.env.DB.prepare(
+      "SELECT id, username FROM users WHERE username = ? AND password = ?"
+    ).bind(username.toLowerCase(), hashedPassword).first();
 
     if (!user) {
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 
-    return c.json({ user: { id: user.id, email: user.email } }, 200);
+    return c.json({ user: { id: user.id, username: user.username } }, 200);
   } catch (e: any) {
     return c.json({ error: 'DB error: ' + e.message }, 500);
   }
 });
 
 app.post('/api/forgot-password', async (c) => {
-  const { email } = await c.req.json();
-  if (!email) return c.json({ error: 'Missing email' }, 400);
-
-  const token = crypto.randomUUID();
-  const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 mins
+  const { username } = await c.req.json();
+  if (!username) return c.json({ error: 'Missing username' }, 400);
 
   try {
-    const res = await c.env.DB.prepare(
-      "UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE email = ?"
-    ).bind(token, expires, email).run();
+    const user: any = await c.env.DB.prepare(
+      "SELECT security_question FROM users WHERE username = ?"
+    ).bind(username.toLowerCase()).first();
 
-    if (res.meta.changes > 0) {
-      const url = new URL(c.req.url);
-      const resetLink = `${url.origin}/auth?type=reset&token=${token}`;
-      
-      const emailHtml = `
-        <div style="font-family: sans-serif; max-w: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #4F46E5; margin-bottom: 20px;">Password Reset Request</h2>
-          <p style="color: #333; font-size: 16px; line-height: 1.5;">We received a request to reset your password. Click the button below to choose a new one. This link will expire in <b>30 minutes</b>.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
-          </div>
-          <p style="color: #777; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
-        </div>
-      `;
-
-      await sendEmail(
-        c.env, 
-        email, 
-        "Action Required: Reset your Chatwave password", 
-        emailHtml
-      );
+    if (!user) {
+      return c.json({ error: 'User not found' }, 404);
     }
 
-    // Always return success to prevent email enumeration
-    return c.json({ success: true }, 200);
+    return c.json({ securityQuestion: user.security_question }, 200);
   } catch (e: any) {
     return c.json({ error: 'Database error' }, 500);
   }
 });
 
 app.post('/api/reset-password', async (c) => {
-  const { token, password } = await c.req.json();
-  if (!token || !password) return c.json({ error: 'Missing fields' }, 400);
+  const { username, securityAnswer, newPassword } = await c.req.json();
+  if (!username || !securityAnswer || !newPassword) return c.json({ error: 'Missing fields' }, 400);
 
   try {
+    const hashedAnswer = await hashPassword(securityAnswer.toLowerCase().trim());
+    
     const user: any = await c.env.DB.prepare(
-      "SELECT id, reset_token_expires FROM users WHERE reset_token = ?"
-    ).bind(token).first();
+      "SELECT id FROM users WHERE username = ? AND security_answer = ?"
+    ).bind(username.toLowerCase(), hashedAnswer).first();
 
-    if (!user || new Date(user.reset_token_expires) < new Date()) {
-      return c.json({ error: 'Invalid or expired reset token' }, 400);
+    if (!user) {
+      return c.json({ error: 'Incorrect security answer' }, 400);
     }
 
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(newPassword);
 
     await c.env.DB.prepare(
-      "UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?"
+      "UPDATE users SET password = ? WHERE id = ?"
     ).bind(hashedPassword, user.id).run();
 
     return c.json({ success: true }, 200);
