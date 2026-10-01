@@ -7,8 +7,8 @@ import { toast } from "sonner";
 import { MessageCircle, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Note: Ensure this matches your deployed Cloudflare Worker URL!
-const API_URL = import.meta.env.VITE_API_URL || "https://chatwave-api.whosh289.workers.dev";
+// Since we are using Cloudflare Pages Functions, the API is on the exact same domain!
+const API_URL = "";
 
 const Auth = () => {
   const [mode, setMode] = useState<"login" | "signup">("login");
