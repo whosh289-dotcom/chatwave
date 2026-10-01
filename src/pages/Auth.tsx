@@ -7,6 +7,9 @@ import { toast } from "sonner";
 import { MessageCircle, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+// Note: Ensure this matches your deployed Cloudflare Worker URL!
+const API_URL = import.meta.env.VITE_API_URL || "https://chatwave-api.whosh289.workers.dev";
+
 const Auth = () => {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -22,16 +25,25 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // NOTE: This currently fakes a login using localStorage until the D1 backend is connected!
-      if (!email || !password) {
-        throw new Error("Please enter both email and password.");
+      const endpoint = mode === "login" ? "/api/login" : "/api/signup";
+      
+      const res = await fetch(`${API_URL}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Authentication failed");
       }
       
       // Save user to context/localStorage
       signIn({
-        id: email, // Using email as a temporary ID for P2P routing
-        email: email,
-        displayName: email.split("@")[0]
+        id: data.user.id,
+        email: data.user.email,
+        displayName: data.user.email.split("@")[0]
       });
       
       toast.success(mode === "login" ? "Logged in successfully!" : "Account created!");
@@ -70,10 +82,10 @@ const Auth = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email / Username</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              type="text"
+              type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
