@@ -165,6 +165,58 @@ app.post('/api/reset-password', async (c) => {
   }
 });
 
+app.get('/api/users/search', async (c) => {
+  const q = c.req.query('q');
+  if (!q || q.length < 2) return c.json({ users: [] }, 200);
+
+  try {
+    const { results } = await c.env.DB.prepare(
+      "SELECT user_id, display_name, username FROM profiles WHERE display_name LIKE ? OR username LIKE ? LIMIT 10"
+    ).bind(`%${q}%`, `%${q}%`).all();
+
+    return c.json({ users: results }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+app.post('/api/conversations', async (c) => {
+  const { isPrivate, groupName, selectedUserIds, ownerId } = await c.req.json();
+  
+  const id = crypto.randomUUID();
+  try {
+    // 1. Create conversation
+    await c.env.DB.prepare(
+      "INSERT INTO conversations (id, is_private, owner_id, name) VALUES (?, ?, ?, ?)"
+    ).bind(id, isPrivate ? 1 : 0, ownerId, groupName || null).run();
+
+    // 2. Add owner
+    await c.env.DB.prepare(
+      "INSERT INTO conversation_participants (id, conversation_id, user_id, role) VALUES (?, ?, ?, ?)"
+    ).bind(crypto.randomUUID(), id, ownerId, 'owner').run();
+
+    if (isPrivate) {
+      // Send invites
+      for (const userId of selectedUserIds) {
+        await c.env.DB.prepare(
+          "INSERT INTO conversation_invites (id, conversation_id, inviter_id, invitee_id) VALUES (?, ?, ?, ?)"
+        ).bind(crypto.randomUUID(), id, ownerId, userId).run();
+      }
+    } else {
+      // Direct members
+      for (const userId of selectedUserIds) {
+        await c.env.DB.prepare(
+          "INSERT INTO conversation_participants (id, conversation_id, user_id, role) VALUES (?, ?, ?, ?)"
+        ).bind(crypto.randomUUID(), id, userId, 'member').run();
+      }
+    }
+
+    return c.json({ conversationId: id }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 export default {
   async fetch(request: Request, env: Bindings, ctx: ExecutionContext) {
     const url = new URL(request.url);

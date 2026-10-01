@@ -35,16 +35,20 @@ const NewConversationDialog = ({ open, onOpenChange, onConversationCreated }: Ne
     setSearch(query);
     if (query.length < 2) { setResults([]); return; }
 
-    const { data } = await supabase
-      .from("profiles")
-      .select("user_id, display_name, username")
-      .neq("user_id", user?.id || "")
-      .or(`display_name.ilike.%${query}%,username.ilike.%${query}%`)
-      .limit(10);
-
-    // Filter out already selected
-    const selectedIds = new Set(selectedUsers.map((u) => u.user_id));
-    setResults((data || []).filter((p) => !selectedIds.has(p.user_id)));
+    try {
+      const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+      if (!res.ok) throw new Error("Search failed");
+      const { users } = await res.json();
+      
+      const filtered = users.filter((u: Profile) => u.user_id !== user?.id);
+      
+      // Filter out already selected
+      const selectedIds = new Set(selectedUsers.map((u) => u.user_id));
+      setResults(filtered.filter((p: Profile) => !selectedIds.has(p.user_id)));
+    } catch (e) {
+      console.error(e);
+      setResults([]);
+    }
   };
 
   const addUser = (profile: Profile) => {
@@ -62,69 +66,27 @@ const NewConversationDialog = ({ open, onOpenChange, onConversationCreated }: Ne
     setLoading(true);
 
     try {
-      // For single user without group name, check existing conversation
-      if (selectedUsers.length === 1 && !isPrivate && !groupName.trim()) {
-        const { data: myConvs } = await supabase
-          .from("conversation_participants")
-          .select("conversation_id")
-          .eq("user_id", user.id);
-
-        const { data: theirConvs } = await supabase
-          .from("conversation_participants")
-          .select("conversation_id")
-          .eq("user_id", selectedUsers[0].user_id);
-
-        const myIds = new Set(myConvs?.map((c) => c.conversation_id) || []);
-        const existing = theirConvs?.find((c) => myIds.has(c.conversation_id));
-
-        if (existing) {
-          onConversationCreated(existing.conversation_id);
-          onOpenChange(false);
-          resetState();
-          return;
-        }
-      }
-
-      // Create conversation
-      const { data: conv, error: convError } = await supabase
-        .from("conversations")
-        .insert({
-          is_private: isPrivate,
-          owner_id: user.id,
-          name: groupName.trim() || null,
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          isPrivate,
+          groupName,
+          ownerId: user.id,
+          selectedUserIds: selectedUsers.map(u => u.user_id)
         })
-        .select()
-        .single();
-
-      if (convError) throw convError;
-
-      // Add creator as owner
-      await supabase
-        .from("conversation_participants")
-        .insert({ conversation_id: conv.id, user_id: user.id, role: "owner" });
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to create group");
 
       if (isPrivate) {
-        // Send invites
-        for (const u of selectedUsers) {
-          await supabase.from("conversation_invites").insert({
-            conversation_id: conv.id,
-            inviter_id: user.id,
-            invitee_id: u.user_id,
-          });
-        }
         toast.success("Invites sent! They must accept before joining.");
       } else {
-        // Add directly as members
-        for (const u of selectedUsers) {
-          await supabase.from("conversation_participants").insert({
-            conversation_id: conv.id,
-            user_id: u.user_id,
-            role: "member",
-          });
-        }
+        toast.success("Group created!");
       }
 
-      onConversationCreated(conv.id);
+      onConversationCreated(data.conversationId);
       onOpenChange(false);
       resetState();
     } catch (error: any) {
