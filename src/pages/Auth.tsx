@@ -79,8 +79,7 @@ const Auth = () => {
       // Login success
       signIn({
         id: data.user.id,
-        email: data.user.username + "@chatwave.local", // Dummy email for legacy contexts
-        displayName: data.user.username
+        username: data.user.username
       });
       
       toast.success("Logged in successfully!");

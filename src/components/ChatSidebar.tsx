@@ -143,11 +143,11 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                 >
                   <Avatar className="w-6 h-6 rounded-md">
                     <AvatarFallback className="bg-primary/20 text-xs text-primary font-bold">
-                      {acc.username[0].toUpperCase()}
+                      {acc?.username?.[0]?.toUpperCase() || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <span className={`font-medium text-sm ${acc.id === user?.id ? "text-primary" : ""}`}>
-                    {acc.username}
+                    {acc?.username || "Account"}
                   </span>
                 </DropdownMenuItem>
               ))}
