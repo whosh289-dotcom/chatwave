@@ -165,29 +165,28 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
   };
 
   return (
-    <div className="flex flex-col h-full bg-card border-r border-border">
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <MessageCircle className="w-4 h-4 text-primary-foreground" />
+    <div className="flex flex-col h-full bg-card">
+      <div className="p-5 border-b border-border/40">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-primary stroke-[2.5]" />
             </div>
-            <h1 className="text-lg font-bold font-heading">Chatwave</h1>
+            <h1 className="text-[19px] font-bold font-heading tracking-tight">ChatApp</h1>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1.5 items-center">
             <ThemeToggle />
-            <Button variant="ghost" size="sm" onClick={onNewConversation} className="h-8 gap-1.5 px-2">
-              <Plus className="w-4 h-4" />
-              <span className="text-xs font-medium">New Group</span>
+            <Button variant="ghost" size="icon" onClick={onNewConversation} className="h-9 w-9 rounded-full bg-secondary hover:bg-secondary/80">
+              <Plus className="w-4 h-4 text-secondary-foreground" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={signOut} className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={signOut} className="h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive">
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search conversations..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9 bg-muted border-0" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search messages..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 h-10 bg-muted/50 border-0 focus-visible:ring-primary rounded-xl" />
         </div>
       </div>
 

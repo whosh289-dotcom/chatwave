@@ -9,36 +9,38 @@ const Chat = () => {
   const [showNewDialog, setShowNewDialog] = useState(false);
 
   return (
-    <div className="flex h-screen">
-      {/* Sidebar - hidden on mobile when conversation selected */}
-      <div className={`w-full md:w-80 lg:w-96 shrink-0 ${selectedConversation ? "hidden md:block" : ""}`}>
-        <ChatSidebar
-          selectedConversation={selectedConversation}
-          onSelectConversation={setSelectedConversation}
-          onNewConversation={() => setShowNewDialog(true)}
-        />
-      </div>
+    <div className="flex h-screen bg-background md:p-6 lg:p-8">
+      <div className="flex w-full h-full bg-card overflow-hidden md:rounded-3xl md:border md:border-border md:shadow-2xl md:shadow-primary/5">
+        {/* Sidebar - hidden on mobile when conversation selected */}
+        <div className={`w-full md:w-[380px] shrink-0 border-r border-border ${selectedConversation ? "hidden md:block" : ""}`}>
+          <ChatSidebar
+            selectedConversation={selectedConversation}
+            onSelectConversation={setSelectedConversation}
+            onNewConversation={() => setShowNewDialog(true)}
+          />
+        </div>
 
-      {/* Chat View */}
-      <div className={`flex-1 ${!selectedConversation ? "hidden md:flex" : "flex"}`}>
-        {selectedConversation ? (
-          <div className="flex-1">
-            <ChatView
-              conversationId={selectedConversation}
-              onBack={() => setSelectedConversation(null)}
-            />
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-muted/30">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8 text-primary" />
-              </div>
-              <h2 className="text-xl font-bold font-heading mb-1">Welcome to Chatwave</h2>
-              <p className="text-muted-foreground text-sm">Select a conversation or start a new one</p>
+        {/* Chat View */}
+        <div className={`flex-1 bg-background/50 ${!selectedConversation ? "hidden md:flex" : "flex"}`}>
+          {selectedConversation ? (
+            <div className="flex-1">
+              <ChatView
+                conversationId={selectedConversation}
+                onBack={() => setSelectedConversation(null)}
+              />
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center bg-transparent">
+              <div className="w-24 h-24 rounded-[2rem] bg-primary/10 flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <MessageCircle className="w-10 h-10 text-primary stroke-[2.5]" />
+              </div>
+              <h2 className="text-2xl font-bold font-heading mb-2 tracking-tight text-foreground">Welcome to ChatApp</h2>
+              <p className="text-muted-foreground text-[15px] font-medium max-w-sm text-center">
+                Select a conversation from the sidebar or start a new one to begin messaging.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       <NewConversationDialog
