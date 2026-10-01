@@ -1,0 +1,1 @@
+ALTER TABLE public.conversations DROP COLUMN IF EXISTS is_encrypted;
