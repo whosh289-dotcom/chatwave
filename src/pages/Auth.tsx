@@ -65,9 +65,6 @@ const Auth = () => {
           </div>
           <div className="flex flex-col leading-tight">
             <h1 className="text-xl font-bold font-heading">Chatwave</h1>
-            <span className="text-[11px] text-muted-foreground tracking-wide">
-              Made specially for Neural OS
-            </span>
           </div>
         </div>
 
