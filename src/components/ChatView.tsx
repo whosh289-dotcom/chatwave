@@ -298,10 +298,24 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   // For 1:1 chats: my last sent message has been seen if the other's last_read_at > message created_at
   const lastMineId = [...messages].reverse().find((m) => m.sender_id === user?.id)?.id;
 
+  const [bgClass, setBgClass] = useState(() => {
+    const saved = localStorage.getItem("chat-bg") || "dots";
+    return `chat-bg-${saved}`;
+  });
+
+  useEffect(() => {
+    const handleBgChange = () => {
+      const saved = localStorage.getItem("chat-bg") || "dots";
+      setBgClass(`chat-bg-${saved}`);
+    };
+    window.addEventListener("chat-bg-change", handleBgChange);
+    return () => window.removeEventListener("chat-bg-change", handleBgChange);
+  }, []);
+
   return (
     <div className="flex flex-col h-full bg-background relative overflow-hidden">
       {/* Background Pattern Layer */}
-      <div className="absolute inset-0 chat-bg opacity-[0.03] pointer-events-none"></div>
+      <div className={`absolute inset-0 ${bgClass} opacity-[0.03] pointer-events-none`}></div>
 
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border bg-card">

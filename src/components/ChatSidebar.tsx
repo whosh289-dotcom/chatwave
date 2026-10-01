@@ -4,10 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, LogOut, MessageCircle, Lock, Users, Pin, BellOff } from "lucide-react";
+import { Search, Plus, LogOut, MessageCircle, Lock, Users, Pin, BellOff, Settings } from "lucide-react";
 import { format } from "date-fns";
 import ConversationInvites from "@/components/ConversationInvites";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SettingsDialog } from "@/components/SettingsDialog";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "@/components/ui/context-menu";
 import { toast } from "sonner";
 

@@ -217,6 +217,93 @@ app.post('/api/conversations', async (c) => {
   }
 });
 
+app.get('/api/conversations', async (c) => {
+  const userId = c.req.query('userId');
+  if (!userId) return c.json({ error: 'Missing userId' }, 400);
+
+  try {
+    const { results: participations } = await c.env.DB.prepare(
+      "SELECT conversation_id, last_read_at FROM conversation_participants WHERE user_id = ?"
+    ).bind(userId).all();
+
+    if (!participations.length) return c.json({ conversations: [] }, 200);
+
+    const convIds = participations.map((p: any) => p.conversation_id);
+    const placeholders = convIds.map(() => '?').join(',');
+
+    const { results: convs } = await c.env.DB.prepare(
+      `SELECT id, is_private, name FROM conversations WHERE id IN (${placeholders})`
+    ).bind(...convIds).all();
+
+    const { results: allParts } = await c.env.DB.prepare(
+      `SELECT conversation_id, user_id FROM conversation_participants WHERE conversation_id IN (${placeholders})`
+    ).bind(...convIds).all();
+
+    const userIds = Array.from(new Set(allParts.map((p: any) => p.user_id)));
+    const userPlaceholders = userIds.map(() => '?').join(',');
+    const { results: profiles } = await c.env.DB.prepare(
+      `SELECT user_id, display_name FROM profiles WHERE user_id IN (${userPlaceholders})`
+    ).bind(...userIds).all();
+
+    const profileMap = new Map(profiles.map((p: any) => [p.user_id, p]));
+
+    const { results: allMsgs } = await c.env.DB.prepare(
+      `SELECT id, conversation_id, content, created_at, sender_id FROM messages WHERE conversation_id IN (${placeholders}) ORDER BY created_at DESC`
+    ).bind(...convIds).all();
+
+    const previews = participations.map((part: any) => {
+      const convId = part.conversation_id;
+      const convData = convs.find((c: any) => c.id === convId);
+      const otherParts = allParts.filter((p: any) => p.conversation_id === convId && p.user_id !== userId);
+      const otherUsers = otherParts.map((p: any) => profileMap.get(p.user_id) || { display_name: "Unknown", user_id: p.user_id });
+      const msgsForConv = allMsgs.filter((m: any) => m.conversation_id === convId);
+      const lastMsg = msgsForConv[0]; 
+
+      return {
+        id: convId,
+        name: convData?.name || null,
+        otherUsers,
+        lastMessage: lastMsg ? { content: lastMsg.content, created_at: lastMsg.created_at } : undefined,
+        is_private: convData?.is_private || false,
+        memberCount: allParts.filter((p: any) => p.conversation_id === convId).length,
+        unread: 0,
+        pinned: false,
+        muted: false,
+        lastReadAt: part.last_read_at,
+      };
+    }).filter((p: any) => p.otherUsers.length > 0 || p.memberCount > 1);
+
+    return c.json({ conversations: previews }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+app.get('/api/messages/:conversationId', async (c) => {
+  const convId = c.req.param('conversationId');
+  try {
+    const { results } = await c.env.DB.prepare(
+      "SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC"
+    ).bind(convId).all();
+    return c.json({ messages: results }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+app.post('/api/messages', async (c) => {
+  const { conversationId, senderId, content, gifUrl } = await c.req.json();
+  const id = crypto.randomUUID();
+  try {
+    await c.env.DB.prepare(
+      "INSERT INTO messages (id, conversation_id, sender_id, content, gif_url) VALUES (?, ?, ?, ?, ?)"
+    ).bind(id, conversationId, senderId, content, gifUrl || null).run();
+    return c.json({ success: true, id }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 export default {
   async fetch(request: Request, env: Bindings, ctx: ExecutionContext) {
     const url = new URL(request.url);

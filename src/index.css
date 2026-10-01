@@ -141,3 +141,27 @@
   background-position: 0 0, 14px 14px;
   opacity: 0.8;
 }
+
+/* Chat Backgrounds */
+.chat-bg-dots {
+  background-color: transparent;
+  background-image: radial-gradient(hsl(var(--primary)) 0.7px, transparent 0.7px), radial-gradient(hsl(var(--primary)) 0.7px, transparent 0.7px);
+  background-size: 28px 28px;
+  background-position: 0 0, 14px 14px;
+}
+
+.chat-bg-grid {
+  background-color: transparent;
+  background-image: linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.chat-bg-lines {
+  background-color: transparent;
+  background-image: repeating-linear-gradient(45deg, hsl(var(--primary)) 0, hsl(var(--primary)) 1px, transparent 0, transparent 50%);
+  background-size: 10px 10px;
+}
+
+.chat-bg-none {
+  background-color: transparent;
+}
