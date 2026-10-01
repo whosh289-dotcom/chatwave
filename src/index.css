@@ -133,3 +133,11 @@
     color: hsl(var(--chat-received-foreground));
   }
 }
+
+.chat-bg {
+  background-color: hsl(var(--background));
+  background-image: radial-gradient(hsl(var(--primary)) 0.7px, transparent 0.7px), radial-gradient(hsl(var(--primary)) 0.7px, hsl(var(--background)) 0.7px);
+  background-size: 28px 28px;
+  background-position: 0 0, 14px 14px;
+  opacity: 0.8;
+}

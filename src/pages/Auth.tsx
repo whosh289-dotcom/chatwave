@@ -68,7 +68,7 @@ const Auth = () => {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to send reset link");
-        toast.success("Password reset link sent! Please check your Spam/Junk folder.");
+        toast.success("Password reset link sent! Check Spam/Junk if you don't see it in 2-3 minutes. Link expires in 30 mins.");
         setMode("login");
         return;
       }
@@ -104,7 +104,7 @@ const Auth = () => {
       }
       
       if (mode === "signup") {
-        toast.success("Account created! Please check your email (and Spam folder) to confirm your account.");
+        toast.success("Account created! Please check your email and Spam folder. It may take 2-3 minutes to arrive. The link expires in 30 mins.");
         setMode("login");
         return;
       }

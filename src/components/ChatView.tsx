@@ -299,7 +299,10 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const lastMineId = [...messages].reverse().find((m) => m.sender_id === user?.id)?.id;
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-background relative overflow-hidden">
+      {/* Background Pattern Layer */}
+      <div className="absolute inset-0 chat-bg opacity-[0.03] pointer-events-none"></div>
+
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border bg-card">
         {onBack && (

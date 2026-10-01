@@ -49,6 +49,7 @@ app.post('/api/signup', async (c) => {
   const id = crypto.randomUUID();
   const profileId = crypto.randomUUID();
   const token = crypto.randomUUID();
+  const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 mins
 
   try {
     // Ensure tables exist
@@ -59,6 +60,7 @@ app.post('/api/signup', async (c) => {
         password TEXT NOT NULL,
         email_confirmed BOOLEAN NOT NULL DEFAULT 0,
         confirmation_token TEXT,
+        confirmation_token_expires DATETIME,
         reset_token TEXT,
         reset_token_expires DATETIME,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -81,8 +83,8 @@ app.post('/api/signup', async (c) => {
 
     // Insert user
     await c.env.DB.prepare(
-      "INSERT INTO users (id, email, password, email_confirmed, confirmation_token) VALUES (?, ?, ?, 0, ?)"
-    ).bind(id, email, hashedPassword, token).run();
+      "INSERT INTO users (id, email, password, email_confirmed, confirmation_token, confirmation_token_expires) VALUES (?, ?, ?, 0, ?, ?)"
+    ).bind(id, email, hashedPassword, token, expires).run();
 
     // Insert profile with username
     await c.env.DB.prepare(
@@ -92,11 +94,23 @@ app.post('/api/signup', async (c) => {
     const url = new URL(c.req.url);
     const confirmLink = `${url.origin}/auth?type=confirm&token=${token}`;
     
+    const emailHtml = `
+      <div style="font-family: sans-serif; max-w: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h2 style="color: #4F46E5; margin-bottom: 20px;">Welcome to Chatwave!</h2>
+        <p style="color: #333; font-size: 16px; line-height: 1.5;">Hi <b>${username}</b>,</p>
+        <p style="color: #333; font-size: 16px; line-height: 1.5;">Thanks for signing up. Please confirm your email address by clicking the button below. This link will expire in <b>30 minutes</b>.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${confirmLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Confirm Email</a>
+        </div>
+        <p style="color: #777; font-size: 14px;">If the button doesn't work, copy and paste this link into your browser:<br><br><a href="${confirmLink}" style="color: #4F46E5;">${confirmLink}</a></p>
+      </div>
+    `;
+
     await sendEmail(
       c.env, 
       email, 
-      "Confirm your Chatwave account", 
-      `Click here to confirm your email: <a href="${confirmLink}">${confirmLink}</a>`
+      "Action Required: Confirm your Chatwave account", 
+      emailHtml
     );
 
     return c.json({ user: { id, email, username } }, 200);
@@ -115,13 +129,21 @@ app.post('/api/confirm', async (c) => {
   const { token } = await c.req.json();
   if (!token) return c.json({ error: 'Missing token' }, 400);
 
-  const res = await c.env.DB.prepare(
-    "UPDATE users SET email_confirmed = 1, confirmation_token = NULL WHERE confirmation_token = ?"
-  ).bind(token).run();
+  const user: any = await c.env.DB.prepare(
+    "SELECT id, confirmation_token_expires FROM users WHERE confirmation_token = ?"
+  ).bind(token).first();
 
-  if (res.meta.changes === 0) {
-    return c.json({ error: 'Invalid or expired confirmation token' }, 400);
+  if (!user) {
+    return c.json({ error: 'Invalid confirmation token' }, 400);
   }
+
+  if (user.confirmation_token_expires && new Date(user.confirmation_token_expires) < new Date()) {
+    return c.json({ error: 'Confirmation link has expired (30 minute limit). Please sign up again.' }, 400);
+  }
+
+  await c.env.DB.prepare(
+    "UPDATE users SET email_confirmed = 1, confirmation_token = NULL, confirmation_token_expires = NULL WHERE id = ?"
+  ).bind(user.id).run();
 
   return c.json({ success: true }, 200);
 });
@@ -166,7 +188,7 @@ app.post('/api/forgot-password', async (c) => {
   if (!email) return c.json({ error: 'Missing email' }, 400);
 
   const token = crypto.randomUUID();
-  const expires = new Date(Date.now() + 1000 * 60 * 60).toISOString(); // 1 hour
+  const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 mins
 
   try {
     const res = await c.env.DB.prepare(
@@ -177,11 +199,22 @@ app.post('/api/forgot-password', async (c) => {
       const url = new URL(c.req.url);
       const resetLink = `${url.origin}/auth?type=reset&token=${token}`;
       
+      const emailHtml = `
+        <div style="font-family: sans-serif; max-w: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #4F46E5; margin-bottom: 20px;">Password Reset Request</h2>
+          <p style="color: #333; font-size: 16px; line-height: 1.5;">We received a request to reset your password. Click the button below to choose a new one. This link will expire in <b>30 minutes</b>.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
+          </div>
+          <p style="color: #777; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `;
+
       await sendEmail(
         c.env, 
         email, 
-        "Reset your Chatwave password", 
-        `Click here to reset your password: <a href="${resetLink}">${resetLink}</a>`
+        "Action Required: Reset your Chatwave password", 
+        emailHtml
       );
     }
 
