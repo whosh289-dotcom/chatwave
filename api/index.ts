@@ -22,19 +22,23 @@ async function sendEmail(env: Bindings, to: string, subject: string, body: strin
     return;
   }
   
-  await fetch('https://api.resend.com/emails', {
+  const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${env.RESEND_API_KEY}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      from: 'Chatwave <noreply@yourdomain.com>',
+      from: 'onboarding@resend.dev',
       to,
       subject,
       html: body
     })
   });
+
+  if (!res.ok) {
+    console.error("Resend Error:", await res.text());
+  }
 }
 
 app.post('/api/signup', async (c) => {
