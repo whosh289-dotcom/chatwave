@@ -1,58 +1,57 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Session, User } from "@supabase/supabase-js";
+
+interface User {
+  id: string;
+  email: string;
+  displayName?: string;
+}
 
 interface AuthContextType {
-  session: Session | null;
   user: User | null;
   loading: boolean;
-  signOut: () => Promise<void>;
+  signIn: (user: User) => void;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  session: null,
   user: null,
   loading: true,
-  signOut: async () => {},
+  signIn: () => {},
+  signOut: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setLoading(false);
+    // Check localStorage on initial load
+    const storedUser = localStorage.getItem("chatwave_user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse stored user", e);
       }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
-  const signOut = async () => {
-    try {
-      // 'local' scope avoids the server-side token revoke call which can fail
-      // with "Load failed" when the token is already stale or offline.
-      await supabase.auth.signOut({ scope: "local" });
-    } catch (e) {
-      // Swallow — we'll force the local session clear below.
-      console.warn("signOut error (ignored):", e);
-    }
-    setSession(null);
+  const signIn = (newUser: User) => {
+    setUser(newUser);
+    localStorage.setItem("chatwave_user", JSON.stringify(newUser));
+  };
+
+  const signOut = () => {
+    setUser(null);
+    localStorage.removeItem("chatwave_user");
     if (typeof window !== "undefined") {
       window.location.href = "/auth";
     }
   };
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
