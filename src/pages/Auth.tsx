@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { MessageCircle, Eye, EyeOff } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { MessageCircle, Eye, EyeOff, ArrowLeft, MailCheck } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const API_URL = "";
 
 const Auth = () => {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState<"login" | "signup" | "forgot_password" | "reset_password" | "confirm_email">("login");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,17 +21,80 @@ const Auth = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
+  // Check for tokens in URL for reset or confirm
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const type = searchParams.get("type");
+    if (token) {
+      if (type === "reset") setMode("reset_password");
+      if (type === "confirm") {
+        setMode("confirm_email");
+        confirmEmailToken(token);
+      }
+    }
+  }, [searchParams]);
+
+  const confirmEmailToken = async (token: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Confirmation failed");
+      toast.success("Email confirmed successfully! You can now log in.");
+      setMode("login");
+      navigate("/auth");
+    } catch (err: any) {
+      toast.error(err.message);
+      setMode("login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      if (mode === "forgot_password") {
+        const res = await fetch(`${API_URL}/api/forgot-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to send reset link");
+        toast.success("Password reset link sent to your email!");
+        setMode("login");
+        return;
+      }
+
+      if (mode === "reset_password") {
+        const token = searchParams.get("token");
+        const res = await fetch(`${API_URL}/api/reset-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to reset password");
+        toast.success("Password reset successfully! Please log in.");
+        setMode("login");
+        navigate("/auth");
+        return;
+      }
+
+      // Login or Signup
       const endpoint = mode === "login" ? "/api/login" : "/api/signup";
-      
+      const bodyPayload = mode === "signup" ? { email, password, username } : { email, password };
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(bodyPayload)
       });
 
       const data = await res.json();
@@ -38,13 +103,20 @@ const Auth = () => {
         throw new Error(data.error || "Authentication failed");
       }
       
+      if (mode === "signup") {
+        toast.success("Account created! Please check your email to confirm your account.");
+        setMode("login");
+        return;
+      }
+
+      // Login success
       signIn({
         id: data.user.id,
         email: data.user.email,
         displayName: data.user.email.split("@")[0]
       });
       
-      toast.success(mode === "login" ? "Logged in successfully!" : "Account created!");
+      toast.success("Logged in successfully!");
       navigate("/");
     } catch (error: any) {
       toast.error(error.message);
@@ -53,13 +125,9 @@ const Auth = () => {
     }
   };
 
-  const handleGoogle = () => {
-    toast.error("Google login requires OAuth setup with Cloudflare");
-  };
-
   return (
     <div className="min-h-screen w-full flex bg-background">
-      {/* Left Panel - Hidden on mobile, visible on large screens */}
+      {/* Left Panel */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 bg-primary p-12 text-primary-foreground">
         <div className="flex items-center gap-2">
           <MessageCircle className="w-7 h-7 stroke-[2.5]" />
@@ -68,9 +136,7 @@ const Auth = () => {
         
         <div className="flex justify-center items-center flex-1 w-full">
           <div className="bg-primary-foreground/10 w-96 h-96 rounded-[2rem] flex items-center justify-center relative overflow-hidden shadow-2xl mx-auto backdrop-blur-sm">
-            {/* Dark Bubble */}
             <div className="absolute w-[140px] h-[140px] bg-primary-foreground/90 top-[20%] left-[20%] z-10" style={{ borderRadius: '50% 50% 50% 10%' }}></div>
-            {/* Light Bubble */}
             <div className="absolute w-[140px] h-[140px] bg-accent/90 bottom-[20%] right-[20%] z-20 mix-blend-screen" style={{ borderRadius: '50% 50% 10% 50%' }}></div>
           </div>
         </div>
@@ -87,93 +153,142 @@ const Auth = () => {
         <div className="w-full max-w-[440px] bg-card p-10 rounded-2xl border border-border shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
           
           <div className="text-center mb-8">
-            <h2 className="text-[28px] font-bold text-foreground font-heading tracking-tight mb-2">
-              {mode === "login" ? "Welcome back" : "Create account"}
-            </h2>
-            <p className="text-sm text-muted-foreground font-medium">
-              {mode === "login" ? "Sign in to continue chatting" : "Sign up to start chatting"}
-            </p>
-          </div>
-
-          <button 
-            type="button" 
-            onClick={handleGoogle}
-            className="w-full flex items-center justify-center gap-3 bg-secondary hover:bg-secondary/80 border border-border text-secondary-foreground text-sm font-bold h-12 rounded-xl transition-colors"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-            </svg>
-            Continue with Google
-          </button>
-
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-4 text-muted-foreground font-bold uppercase tracking-wider">or</span>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-[13px] font-bold text-foreground">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-12 bg-background border-border focus-visible:ring-primary rounded-xl px-4 text-[15px]"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-[13px] font-bold text-foreground">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="h-12 bg-background border-border focus-visible:ring-primary rounded-xl px-4 pr-10 text-[15px]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+            {mode === "confirm_email" && (
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                  <MailCheck className="w-8 h-8 text-primary" />
+                </div>
+                <h2 className="text-[28px] font-bold text-foreground font-heading tracking-tight">
+                  Confirming email...
+                </h2>
               </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full h-12 rounded-xl text-[15px] font-bold mt-2 transition-colors" 
-              disabled={loading}
-            >
-              {loading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
-            </Button>
-          </form>
-
-          <div className="mt-8 text-center text-[13.5px] text-muted-foreground font-medium">
-            {mode === "login" ? "New here? " : "Already have an account? "}
-            <button
-              type="button"
-              onClick={() => setMode(mode === "login" ? "signup" : "login")}
-              className="text-primary font-bold hover:underline"
-            >
-              {mode === "login" ? "Create an account" : "Sign in"}
-            </button>
+            )}
+            
+            {mode !== "confirm_email" && (
+              <>
+                <h2 className="text-[28px] font-bold text-foreground font-heading tracking-tight mb-2">
+                  {mode === "login" && "Welcome back"}
+                  {mode === "signup" && "Create account"}
+                  {mode === "forgot_password" && "Reset Password"}
+                  {mode === "reset_password" && "New Password"}
+                </h2>
+                <p className="text-sm text-muted-foreground font-medium">
+                  {mode === "login" && "Sign in to continue chatting"}
+                  {mode === "signup" && "Sign up to start chatting"}
+                  {mode === "forgot_password" && "Enter your email to receive a reset link"}
+                  {mode === "reset_password" && "Enter your new password below"}
+                </p>
+              </>
+            )}
           </div>
+
+          {mode !== "confirm_email" && (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {(mode === "login" || mode === "signup" || mode === "forgot_password") && (
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-[13px] font-bold text-foreground">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="h-12 bg-background border-border focus-visible:ring-primary rounded-xl px-4 text-[15px]"
+                  />
+                </div>
+              )}
+
+              {mode === "signup" && (
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-[13px] font-bold text-foreground">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="Choose a unique username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    className="h-12 bg-background border-border focus-visible:ring-primary rounded-xl px-4 text-[15px]"
+                  />
+                </div>
+              )}
+
+              {(mode === "login" || mode === "signup" || mode === "reset_password") && (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="password" className="text-[13px] font-bold text-foreground">
+                      {mode === "reset_password" ? "New Password" : "Password"}
+                    </Label>
+                    {mode === "login" && (
+                      <button
+                        type="button"
+                        onClick={() => setMode("forgot_password")}
+                        className="text-[13px] text-primary font-semibold hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="h-12 bg-background border-border focus-visible:ring-primary rounded-xl px-4 pr-10 text-[15px]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 rounded-xl text-[15px] font-bold mt-2 transition-colors" 
+                disabled={loading}
+              >
+                {loading ? "Please wait..." : 
+                  mode === "login" ? "Sign in" : 
+                  mode === "signup" ? "Create account" : 
+                  mode === "forgot_password" ? "Send reset link" : "Update password"}
+              </Button>
+            </form>
+          )}
+
+          {(mode === "forgot_password" || mode === "reset_password") && (
+            <div className="mt-8 text-center text-[13.5px] text-muted-foreground font-medium">
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className="inline-flex items-center gap-2 text-primary font-bold hover:underline"
+              >
+                <ArrowLeft className="w-4 h-4" /> Back to login
+              </button>
+            </div>
+          )}
+
+          {(mode === "login" || mode === "signup") && (
+            <div className="mt-8 text-center text-[13.5px] text-muted-foreground font-medium">
+              {mode === "login" ? "New here? " : "Already have an account? "}
+              <button
+                type="button"
+                onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                className="text-primary font-bold hover:underline"
+              >
+                {mode === "login" ? "Create an account" : "Sign in"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
