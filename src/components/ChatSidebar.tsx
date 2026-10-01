@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import ConversationInvites from "@/components/ConversationInvites";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "@/components/ui/context-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 interface ConversationPreview {
@@ -31,93 +32,35 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversation }: ChatSidebarProps) => {
-  const { user, signOut } = useAuth();
+  const { user, accounts, switchAccount, signOut } = useAuth();
+  const [showSettings, setShowSettings] = useState(false);
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [search, setSearch] = useState("");
 
   const fetchConversations = async () => {
     if (!user) return;
-
-    const { data: participations } = await supabase
-      .from("conversation_participants")
-      .select("conversation_id, last_read_at, pinned, muted_until")
-      .eq("user_id", user.id);
-
-    if (!participations?.length) { setConversations([]); return; }
-
-    const convIds = participations.map((p) => p.conversation_id);
-
-    // Batch all four queries in parallel
-    const [convsRes, allPartsRes, lastMsgsRes, unreadMsgsRes] = await Promise.all([
-      supabase.from("conversations").select("id, is_private, name").in("id", convIds),
-      supabase.from("conversation_participants").select("conversation_id, user_id").in("conversation_id", convIds),
-      supabase.from("messages").select("conversation_id, content, created_at, gif_url, sender_id").in("conversation_id", convIds).order("created_at", { ascending: false }),
-      supabase.from("messages").select("id, conversation_id, created_at, sender_id").in("conversation_id", convIds).neq("sender_id", user.id),
-    ]);
-
-    const convs = convsRes.data || [];
-    const allParts = allPartsRes.data || [];
-    const allMsgs = lastMsgsRes.data || [];
-    const unreadMsgs = unreadMsgsRes.data || [];
-
-    // Collect all other user ids and fetch their profiles in one go
-    const otherIds = Array.from(new Set(allParts.filter((p) => p.user_id !== user.id).map((p) => p.user_id)));
-    const profilesRes = otherIds.length
-      ? await supabase.from("profiles").select("display_name, user_id").in("user_id", otherIds)
-      : { data: [] as { display_name: string | null; user_id: string }[] };
-    const profileMap = new Map((profilesRes.data || []).map((p) => [p.user_id, p]));
-
-    // Latest message per conversation (messages came back ordered desc)
-    const lastMsgMap = new Map<string, typeof allMsgs[number]>();
-    for (const m of allMsgs) {
-      if (!lastMsgMap.has(m.conversation_id)) lastMsgMap.set(m.conversation_id, m);
+    try {
+      const res = await fetch(`/api/conversations?userId=${user.id}`);
+      if (!res.ok) throw new Error("Failed to fetch conversations");
+      const { conversations: convs } = await res.json();
+      
+      convs.sort((a: any, b: any) => {
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        const ta = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : 0;
+        const tb = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : 0;
+        return tb - ta;
+      });
+      setConversations(convs);
+    } catch (e) {
+      console.error(e);
+      setConversations([]);
     }
-
-    const previews: ConversationPreview[] = participations.map((part) => {
-      const convId = part.conversation_id;
-      const convData = convs.find((c) => c.id === convId);
-      const otherParts = allParts.filter((p) => p.conversation_id === convId && p.user_id !== user.id);
-      const otherUsers = otherParts.map((p) => profileMap.get(p.user_id) || { display_name: null, user_id: p.user_id });
-      const lastMsg = lastMsgMap.get(convId);
-      const unread = unreadMsgs.filter((m) => m.conversation_id === convId && (!part.last_read_at || m.created_at > part.last_read_at)).length;
-      const memberCount = allParts.filter((p) => p.conversation_id === convId).length;
-
-      return {
-        id: convId,
-        name: convData?.name || null,
-        otherUsers,
-        lastMessage: lastMsg ? {
-          content: lastMsg.gif_url ? "📷 GIF" : (lastMsg.content || ""),
-          created_at: lastMsg.created_at,
-        } : undefined,
-        is_private: convData?.is_private || false,
-        memberCount,
-        unread,
-        pinned: part.pinned ?? false,
-        muted: part.muted_until ? new Date(part.muted_until) > new Date() : false,
-        lastReadAt: part.last_read_at,
-      };
-    }).filter((p) => p.otherUsers.length > 0 || p.memberCount > 1);
-
-    previews.sort((a, b) => {
-      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-      const ta = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : 0;
-      const tb = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : 0;
-      return tb - ta;
-    });
-    setConversations(previews);
   };
 
   useEffect(() => {
     fetchConversations();
-
-    const channel = supabase
-      .channel("sidebar-messages")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => fetchConversations())
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "conversation_participants" }, () => fetchConversations())
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    const interval = setInterval(fetchConversations, 3000); // Poll every 3 seconds
+    return () => clearInterval(interval);
   }, [user]);
 
   const filtered = conversations.filter((c) => {
@@ -168,19 +111,68 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
     <div className="flex flex-col h-full bg-card">
       <div className="p-5 border-b border-border/40">
         <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-              <MessageCircle className="w-5 h-5 text-primary stroke-[2.5]" />
-            </div>
-            <h1 className="text-[19px] font-bold font-heading tracking-tight">ChatApp</h1>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2.5 px-2 hover:bg-muted/50 rounded-xl">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Avatar className="w-9 h-9 rounded-xl">
+                    <AvatarFallback className="bg-transparent text-primary font-bold">
+                      {user?.username?.[0]?.toUpperCase() || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex flex-col items-start text-left">
+                  <span className="text-sm font-bold font-heading tracking-tight leading-tight">
+                    {user?.username || "Account"}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                    Switch Account
+                  </span>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 p-2 rounded-xl border border-border shadow-2xl">
+              <DropdownMenuLabel className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1">
+                Your Accounts
+              </DropdownMenuLabel>
+              {accounts.map(acc => (
+                <DropdownMenuItem 
+                  key={acc.id} 
+                  onClick={() => switchAccount(acc.id)}
+                  className={`flex items-center gap-2 p-2 cursor-pointer rounded-lg mb-1 ${acc.id === user?.id ? "bg-primary/10" : ""}`}
+                >
+                  <Avatar className="w-6 h-6 rounded-md">
+                    <AvatarFallback className="bg-primary/20 text-xs text-primary font-bold">
+                      {acc.username[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className={`font-medium text-sm ${acc.id === user?.id ? "text-primary" : ""}`}>
+                    {acc.username}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator className="my-2" />
+              <DropdownMenuItem 
+                onClick={() => window.location.href = "/auth?add=true"}
+                className="flex items-center gap-2 p-2 cursor-pointer rounded-lg text-primary font-medium"
+              >
+                <Plus className="w-4 h-4" /> Add Account
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={signOut}
+                className="flex items-center gap-2 p-2 cursor-pointer rounded-lg text-destructive focus:text-destructive font-medium"
+              >
+                <LogOut className="w-4 h-4" /> Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <div className="flex gap-1.5 items-center">
-            <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={onNewConversation} className="h-9 w-9 rounded-full bg-secondary hover:bg-secondary/80">
-              <Plus className="w-4 h-4 text-secondary-foreground" />
+            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)} className="h-9 w-9 rounded-full hover:bg-secondary/80">
+              <Settings className="w-4 h-4 text-muted-foreground" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={signOut} className="h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive">
-              <LogOut className="w-4 h-4" />
+            <Button variant="ghost" size="icon" onClick={onNewConversation} className="h-9 w-9 rounded-full bg-secondary hover:bg-secondary/80 text-secondary-foreground">
+              <Plus className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -259,8 +251,9 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
           ))
         )}
       </div>
+    <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
     </div>
   );
-};
+}
 
 export default ChatSidebar;

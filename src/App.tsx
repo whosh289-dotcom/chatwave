@@ -26,6 +26,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const isAddingAccount = new URLSearchParams(window.location.search).get("add") === "true";
+  
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -33,7 +35,7 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  return user ? <Navigate to="/" replace /> : <>{children}</>;
+  return user && !isAddingAccount ? <Navigate to="/" replace /> : <>{children}</>;
 };
 
 const App = () => (
