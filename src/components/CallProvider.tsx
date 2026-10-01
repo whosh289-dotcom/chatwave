@@ -1,234 +1,138 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Phone, Video, PhoneOff, Mic, MicOff, VideoOff, X } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { PhoneOff, Video, Phone, MicOff, Mic, VideoOff } from "lucide-react";
+import Peer, { MediaConnection } from "peerjs";
 
-type CallType = "audio" | "video";
-type CallStatus = "idle" | "ringing-outgoing" | "ringing-incoming" | "active" | "ended";
+type CallType = "video" | "voice";
 
-interface ActiveCall {
+type CallState = {
   id: string;
-  conversationId: string;
   peerId: string;
   peerName: string;
   type: CallType;
-  status: CallStatus;
+  status: "ringing-outgoing" | "ringing-incoming" | "active";
   isInitiator: boolean;
-}
-
-interface CallCtx {
-  startCall: (conversationId: string, calleeId: string, calleeName: string, type: CallType) => Promise<void>;
-}
-
-const Ctx = createContext<CallCtx | null>(null);
-
-const ICE: RTCConfiguration = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-  ],
+  peerConnection?: MediaConnection;
 };
+
+type CallContextType = {
+  startCall: (conversationId: string, calleeId: string, calleeName: string, type: CallType) => Promise<void>;
+};
+
+const Ctx = createContext<CallContextType | null>(null);
 
 export function useCall() {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("useCall must be inside CallProvider");
+  if (!ctx) throw new Error("useCall must be used within CallProvider");
   return ctx;
 }
 
-export function CallProvider({ children }: { children: ReactNode }) {
+export function CallProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [call, setCall] = useState<ActiveCall | null>(null);
+  const [call, setCall] = useState<CallState | null>(null);
   const [muted, setMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
+  
+  const peerRef = useRef<Peer | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
-  const remoteStreamRef = useRef<MediaStream | null>(null);
-  const localVideoRef = useRef<HTMLVideoElement | null>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
-  const signalChRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
 
-  const cleanup = useCallback(() => {
-    pcRef.current?.close();
-    pcRef.current = null;
-    localStreamRef.current?.getTracks().forEach((t) => t.stop());
-    localStreamRef.current = null;
-    remoteStreamRef.current = null;
-    if (signalChRef.current) {
-      supabase.removeChannel(signalChRef.current);
-      signalChRef.current = null;
+  useEffect(() => {
+    if (!user) {
+      if (peerRef.current) {
+        peerRef.current.destroy();
+        peerRef.current = null;
+      }
+      return;
     }
-    pendingCandidates.current = [];
-    setMuted(false);
-    setCameraOff(false);
-  }, []);
 
-  const endCall = useCallback(async (status: "ended" | "missed" | "declined" = "ended") => {
-    if (!call) return;
-    await supabase.from("calls").update({
-      status,
-      ended_at: new Date().toISOString(),
-    }).eq("id", call.id);
-    cleanup();
-    setCall(null);
-  }, [call, cleanup]);
+    const peer = new Peer(user.id);
+    peerRef.current = peer;
 
-  // Attach streams to video els when refs / streams change
-  useEffect(() => {
-    if (localVideoRef.current && localStreamRef.current) {
-      localVideoRef.current.srcObject = localStreamRef.current;
-    }
-  });
-
-  const setupPeerConnection = useCallback((callId: string, isInitiator: boolean) => {
-    const pc = new RTCPeerConnection(ICE);
-    pcRef.current = pc;
-    const remoteStream = new MediaStream();
-    remoteStreamRef.current = remoteStream;
-
-    pc.ontrack = (event) => {
-      event.streams[0].getTracks().forEach((t) => remoteStream.addTrack(t));
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream;
-    };
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate && signalChRef.current) {
-        signalChRef.current.send({
-          type: "broadcast",
-          event: "ice",
-          payload: { from: user?.id, candidate: event.candidate.toJSON() },
-        });
-      }
-    };
-
-    return pc;
-  }, [user]);
-
-  const getLocalMedia = useCallback(async (type: CallType) => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: type === "video" ? { width: 1280, height: 720 } : false,
-    });
-    localStreamRef.current = stream;
-    if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-    return stream;
-  }, []);
-
-  // Listen for incoming calls
-  useEffect(() => {
-    if (!user) return;
-    const ch = supabase
-      .channel(`incoming-calls-${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "calls", filter: `callee_id=eq.${user.id}` },
-        async (payload) => {
-          const row = payload.new as any;
-          if (call) return; // already in a call
-          // Look up caller name
-          const { data: profile } = await supabase.from("profiles").select("display_name").eq("user_id", row.caller_id).single();
-          setCall({
-            id: row.id,
-            conversationId: row.conversation_id,
-            peerId: row.caller_id,
-            peerName: profile?.display_name || "Caller",
-            type: row.call_type,
-            status: "ringing-incoming",
-            isInitiator: false,
-          });
-        })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "calls" },
-        (payload) => {
-          const row = payload.new as any;
-          setCall((cur) => {
-            if (!cur || cur.id !== row.id) return cur;
-            if (row.status === "ended" || row.status === "declined" || row.status === "missed") {
-              cleanup();
-              return null;
-            }
-            return cur;
-          });
-        })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [user, call, cleanup]);
-
-  // Setup signaling channel when in a call
-  useEffect(() => {
-    if (!call || !user) return;
-    if (call.status !== "active") return;
-    if (signalChRef.current) return;
-
-    const ch = supabase.channel(`call-${call.id}`, { config: { broadcast: { self: false } } });
-    signalChRef.current = ch;
-
-    ch.on("broadcast", { event: "offer" }, async ({ payload }) => {
-      const pc = pcRef.current;
-      if (!pc) return;
-      await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-      for (const c of pendingCandidates.current) {
-        try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch {}
-      }
-      pendingCandidates.current = [];
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      ch.send({ type: "broadcast", event: "answer", payload: { sdp: answer } });
+    peer.on("open", (id) => {
+      console.log("My peer ID is: " + id);
     });
 
-    ch.on("broadcast", { event: "answer" }, async ({ payload }) => {
-      const pc = pcRef.current;
-      if (!pc) return;
-      await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-      for (const c of pendingCandidates.current) {
-        try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch {}
-      }
-      pendingCandidates.current = [];
-    });
-
-    ch.on("broadcast", { event: "ice" }, async ({ payload }) => {
-      const pc = pcRef.current;
-      if (!pc) return;
-      if (!pc.remoteDescription) {
-        pendingCandidates.current.push(payload.candidate);
+    peer.on("call", (incomingCall) => {
+      if (call) {
+        // Busy
+        incomingCall.close();
         return;
       }
-      try { await pc.addIceCandidate(new RTCIceCandidate(payload.candidate)); } catch {}
-    });
+      
+      const type = incomingCall.metadata?.type || "video";
+      const callerName = incomingCall.metadata?.callerName || "Friend";
 
-    ch.subscribe(async (status) => {
-      if (status !== "SUBSCRIBED") return;
-      if (call.isInitiator) {
-        // initiator creates offer once subscribed
-        const pc = pcRef.current;
-        if (!pc) return;
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        ch.send({ type: "broadcast", event: "offer", payload: { sdp: offer } });
-      }
+      setCall({
+        id: incomingCall.peer,
+        peerId: incomingCall.peer,
+        peerName: callerName,
+        type,
+        status: "ringing-incoming",
+        isInitiator: false,
+        peerConnection: incomingCall
+      });
+
+      incomingCall.on("close", () => {
+        cleanup();
+        toast("Call ended");
+      });
     });
 
     return () => {
-      // do not remove channel here; cleanup() handles it on end
+      peer.destroy();
     };
-  }, [call, user]);
+  }, [user, call]); // Need to watch call state to reject busy
+
+  const getLocalMedia = async (type: CallType) => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: type === "video",
+      audio: true,
+    });
+    localStreamRef.current = stream;
+    if (localVideoRef.current && type === "video") {
+      localVideoRef.current.srcObject = stream;
+    }
+    return stream;
+  };
+
+  const cleanup = () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(t => t.stop());
+      localStreamRef.current = null;
+    }
+    setCall(cur => {
+      if (cur?.peerConnection) cur.peerConnection.close();
+      return null;
+    });
+    setMuted(false);
+    setCameraOff(false);
+  };
+
+  const endCall = (reason: string) => {
+    cleanup();
+  };
+
+  useEffect(() => {
+    if (call?.status === "active" && remoteVideoRef.current) {
+      if (call.peerConnection && call.peerConnection.remoteStream) {
+        remoteVideoRef.current.srcObject = call.peerConnection.remoteStream;
+      }
+    }
+  }, [call?.status, call?.peerConnection]);
 
   const startCall = useCallback(async (conversationId: string, calleeId: string, calleeName: string, type: CallType) => {
-    if (!user) return;
+    if (!user || !peerRef.current) return;
     if (call) { toast.error("Already in a call"); return; }
     try {
-      const { data, error } = await supabase.from("calls").insert({
-        conversation_id: conversationId,
-        caller_id: user.id,
-        callee_id: calleeId,
-        call_type: type,
-        status: "ringing",
-      }).select().single();
-      if (error || !data) { toast.error(error?.message || "Failed to call"); return; }
-
+      const stream = await getLocalMedia(type);
+      
       setCall({
-        id: data.id,
-        conversationId,
+        id: calleeId,
         peerId: calleeId,
         peerName: calleeName,
         type,
@@ -236,52 +140,52 @@ export function CallProvider({ children }: { children: ReactNode }) {
         isInitiator: true,
       });
 
-      // Auto-mark missed after 30s if not answered
-      const timeout = setTimeout(async () => {
-        const { data: cur } = await supabase.from("calls").select("status").eq("id", data.id).single();
-        if (cur?.status === "ringing") {
-          await supabase.from("calls").update({ status: "missed", ended_at: new Date().toISOString() }).eq("id", data.id);
-        }
-      }, 30000);
+      const outCall = peerRef.current.call(calleeId, stream, {
+        metadata: { type, callerName: user.email?.split("@")[0] || "Someone" }
+      });
 
-      // Subscribe for status change → when callee accepts (status='active'), begin
-      const statusCh = supabase
-        .channel(`call-status-${data.id}`)
-        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "calls", filter: `id=eq.${data.id}` },
-          async (payload) => {
-            const row = payload.new as any;
-            if (row.status === "active" && pcRef.current === null) {
-              const stream = await getLocalMedia(type);
-              const pc = setupPeerConnection(data.id, true);
-              stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-              setCall((cur) => cur ? { ...cur, status: "active" } : cur);
-            }
-            if (row.status === "ended" || row.status === "declined" || row.status === "missed") {
-              clearTimeout(timeout);
-              cleanup();
-              setCall(null);
-              supabase.removeChannel(statusCh);
-            }
-          })
-        .subscribe();
+      outCall.on("stream", (remoteStream) => {
+        setCall(c => c ? { ...c, status: "active", peerConnection: outCall } : null);
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream;
+        }
+      });
+
+      outCall.on("close", () => {
+        cleanup();
+      });
+
+      outCall.on("error", (err) => {
+        toast.error("Call error: " + err.message);
+        cleanup();
+      });
+
+      setCall(c => c ? { ...c, peerConnection: outCall } : null);
+
     } catch (e: any) {
-      toast.error(e.message || "Call failed");
+      toast.error("Couldn't access mic/camera");
+      cleanup();
     }
-  }, [user, call, getLocalMedia, setupPeerConnection, cleanup]);
+  }, [user, call]);
 
   const acceptCall = useCallback(async () => {
-    if (!call) return;
+    if (!call || !call.peerConnection) return;
     try {
       const stream = await getLocalMedia(call.type);
-      const pc = setupPeerConnection(call.id, false);
-      stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-      await supabase.from("calls").update({ status: "active", answered_at: new Date().toISOString() }).eq("id", call.id);
+      call.peerConnection.answer(stream);
+
+      call.peerConnection.on("stream", (remoteStream) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream;
+        }
+      });
+
       setCall({ ...call, status: "active" });
     } catch (e: any) {
       toast.error("Couldn't access mic/camera");
-      await endCall("declined");
+      endCall("declined");
     }
-  }, [call, getLocalMedia, setupPeerConnection, endCall]);
+  }, [call]);
 
   const toggleMute = () => {
     const track = localStreamRef.current?.getAudioTracks()[0];
@@ -301,7 +205,6 @@ export function CallProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider value={{ startCall }}>
       {children}
 
-      {/* Incoming call dialog */}
       {call?.status === "ringing-incoming" && (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
           <div className="bg-card rounded-2xl p-8 max-w-sm w-full text-center space-y-6 border border-border shadow-2xl">
@@ -328,7 +231,6 @@ export function CallProvider({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      {/* Outgoing ringing */}
       {call?.status === "ringing-outgoing" && (
         <div className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-6 text-white">
           <Avatar className="h-28 w-28 mb-6">
@@ -344,7 +246,6 @@ export function CallProvider({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      {/* Active call */}
       {call?.status === "active" && (
         <div className="fixed inset-0 z-[100] bg-black flex flex-col">
           <div className="flex-1 relative bg-black flex items-center justify-center">
