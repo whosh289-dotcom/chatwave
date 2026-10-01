@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 
 type Bindings = {
   DB: D1Database
+  ASSETS: { fetch: typeof fetch }
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -64,4 +65,13 @@ app.post('/api/login', async (c) => {
   }
 });
 
-export default app
+export default {
+  async fetch(request: Request, env: Bindings, ctx: ExecutionContext) {
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/')) {
+      return app.fetch(request, env, ctx);
+    }
+    // Fallback to static assets
+    return env.ASSETS.fetch(request);
+  }
+}
