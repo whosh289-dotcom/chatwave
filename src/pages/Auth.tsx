@@ -68,7 +68,7 @@ const Auth = () => {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to send reset link");
-        toast.success("Password reset link sent to your email!");
+        toast.success("Password reset link sent! Please check your Spam/Junk folder.");
         setMode("login");
         return;
       }
@@ -104,7 +104,7 @@ const Auth = () => {
       }
       
       if (mode === "signup") {
-        toast.success("Account created! Please check your email to confirm your account.");
+        toast.success("Account created! Please check your email (and Spam folder) to confirm your account.");
         setMode("login");
         return;
       }
