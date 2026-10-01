@@ -219,6 +219,16 @@ export default {
     if (url.pathname.startsWith('/api/')) {
       return app.fetch(request, env, ctx);
     }
-    return env.ASSETS.fetch(request);
+    
+    // Fallback to static assets
+    let response = await env.ASSETS.fetch(request);
+    
+    // If asset not found (like /auth SPA route), return index.html
+    if (response.status === 404 || response.status === 403) {
+      const indexUrl = new URL('/', request.url);
+      response = await env.ASSETS.fetch(new Request(indexUrl));
+    }
+    
+    return response;
   }
 }
