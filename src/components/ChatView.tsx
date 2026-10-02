@@ -116,8 +116,25 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user) return;
-    setSending(true);
+    
     const content = newMessage.trim();
+    setNewMessage(""); // Clear immediately for snappy feel
+    setReplyTo(null);
+
+    // Optimistic UI update
+    const tempId = "temp-" + Date.now();
+    const optimisticMsg: Message = {
+      id: tempId,
+      content,
+      sender_id: user.id,
+      created_at: new Date().toISOString(),
+      reply_to_id: null,
+      gif_url: null,
+      message_type: "text",
+      deleted_for_everyone: false
+    };
+    
+    setMessages(prev => [...prev, optimisticMsg]);
     
     try {
       const res = await fetch('/api/messages', {
@@ -131,22 +148,38 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         })
       });
       if (res.ok) {
-        setNewMessage("");
-        setReplyTo(null);
-        fetchMessages();
+        fetchMessages(); // Pull real ID and timestamp from DB
       } else {
+        // Revert on failure
+        setMessages(prev => prev.filter(m => m.id !== tempId));
         const data = await res.json();
-        toast.error(data.error);
+        toast.error(data.error || "Failed to send");
       }
     } catch (e) {
+      setMessages(prev => prev.filter(m => m.id !== tempId));
       toast.error("Failed to send message");
-    } finally {
-      setSending(false);
     }
   };
 
   const sendGif = async (url: string) => {
     if (!user) return;
+    
+    // Optimistic UI update
+    const tempId = "temp-gif-" + Date.now();
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: "",
+      sender_id: user.id,
+      created_at: new Date().toISOString(),
+      reply_to_id: null,
+      gif_url: url,
+      message_type: "gif",
+      deleted_for_everyone: false
+    };
+    
+    setMessages(prev => [...prev, optimisticMsg]);
+    setReplyTo(null);
+
     try {
       const res = await fetch('/api/messages', {
         method: 'POST',
@@ -159,10 +192,13 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         })
       });
       if (res.ok) {
-        setReplyTo(null);
         fetchMessages();
+      } else {
+        setMessages(prev => prev.filter(m => m.id !== tempId));
+        toast.error("Failed to send GIF");
       }
     } catch (e) {
+      setMessages(prev => prev.filter(m => m.id !== tempId));
       toast.error("Failed to send GIF");
     }
   };
