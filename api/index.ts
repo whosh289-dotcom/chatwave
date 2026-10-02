@@ -195,20 +195,11 @@ app.post('/api/conversations', async (c) => {
       "INSERT INTO conversation_participants (id, conversation_id, user_id, role) VALUES (?, ?, ?, ?)"
     ).bind(crypto.randomUUID(), id, ownerId, 'owner').run();
 
-    if (isPrivate) {
-      // Send invites
-      for (const userId of selectedUserIds) {
-        await c.env.DB.prepare(
-          "INSERT INTO conversation_invites (id, conversation_id, inviter_id, invitee_id) VALUES (?, ?, ?, ?)"
-        ).bind(crypto.randomUUID(), id, ownerId, userId).run();
-      }
-    } else {
-      // Direct members
-      for (const userId of selectedUserIds) {
-        await c.env.DB.prepare(
-          "INSERT INTO conversation_participants (id, conversation_id, user_id, role) VALUES (?, ?, ?, ?)"
-        ).bind(crypto.randomUUID(), id, userId, 'member').run();
-      }
+    // Add all selected users as members immediately
+    for (const userId of selectedUserIds) {
+      await c.env.DB.prepare(
+        "INSERT INTO conversation_participants (id, conversation_id, user_id, role) VALUES (?, ?, ?, ?)"
+      ).bind(crypto.randomUUID(), id, userId, 'member').run();
     }
 
     return c.json({ conversationId: id }, 200);

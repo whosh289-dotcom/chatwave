@@ -64,9 +64,10 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
   }, [user]);
 
   const filtered = conversations.filter((c) => {
+    if (!search) return true; // Always show if no search
     const q = search.toLowerCase();
-    if (c.name?.toLowerCase().includes(q)) return true;
-    return c.otherUsers.some((u) => u.display_name?.toLowerCase().includes(q));
+    if (c.name && c.name.toLowerCase().includes(q)) return true;
+    return c.otherUsers.some((u) => u.display_name && u.display_name.toLowerCase().includes(q));
   });
 
   const getInitials = (name: string | null) => {
