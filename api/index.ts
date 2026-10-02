@@ -180,6 +180,22 @@ app.get('/api/users/search', async (c) => {
   }
 });
 
+
+app.post('/api/users/block', async (c) => {
+  const { blockerId, blockedId } = await c.req.json();
+  if (!blockerId || !blockedId) return c.json({ error: 'Missing ids' }, 400);
+
+  try {
+    await c.env.DB.prepare(
+      "INSERT INTO blocked_users (id, blocker_id, blocked_id) VALUES (?, ?, ?)"
+    ).bind(crypto.randomUUID(), blockerId, blockedId).run();
+    return c.json({ success: true }, 200);
+  } catch (e: any) {
+    if (e.message.includes('UNIQUE')) return c.json({ success: true }, 200); // Already blocked
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 app.post('/api/conversations', async (c) => {
   const { isPrivate, groupName, selectedUserIds, ownerId } = await c.req.json();
   
