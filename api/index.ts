@@ -304,6 +304,51 @@ app.post('/api/messages', async (c) => {
   }
 });
 
+app.get('/api/sessions', async (c) => {
+  const auth = c.req.header("Authorization");
+  const token = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
+  if (!token) return c.json({ error: 'Unauthorized' }, 401);
+
+  try {
+    const { results: sessionData } = await c.env.DB.prepare(
+      "SELECT user_id FROM sessions WHERE id = ?"
+    ).bind(token).all();
+    
+    if (!sessionData.length) return c.json({ error: 'Unauthorized' }, 401);
+    const userId = sessionData[0].user_id;
+
+    const { results: sessions } = await c.env.DB.prepare(
+      "SELECT id, device_info, last_active, created_at FROM sessions WHERE user_id = ? ORDER BY last_active DESC"
+    ).bind(userId).all();
+
+    return c.json({ sessions, currentToken: token }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+app.delete('/api/sessions/:id', async (c) => {
+  const sessionId = c.req.param('id');
+  const auth = c.req.header("Authorization");
+  const token = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
+  if (!token) return c.json({ error: 'Unauthorized' }, 401);
+
+  try {
+    const { results: sessionData } = await c.env.DB.prepare(
+      "SELECT user_id FROM sessions WHERE id = ?"
+    ).bind(token).all();
+    if (!sessionData.length) return c.json({ error: 'Unauthorized' }, 401);
+
+    await c.env.DB.prepare(
+      "DELETE FROM sessions WHERE id = ? AND user_id = ?"
+    ).bind(sessionId, sessionData[0].user_id).run();
+
+    return c.json({ success: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 export default {
   async fetch(request: Request, env: Bindings, ctx: ExecutionContext) {
     const url = new URL(request.url);

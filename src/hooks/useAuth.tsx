@@ -2,7 +2,8 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 
 interface User {
   id: string;
-  username: string; // Updated from email to username
+  username: string;
+  token?: string;
 }
 
 interface AuthContextType {
@@ -31,6 +32,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const storedAccounts = localStorage.getItem("chatwave_accounts");
     const activeUserId = localStorage.getItem("chatwave_active_user");
+    // Support legacy state
+    if (activeUserId && localStorage.getItem("chatwave_user") && !storedAccounts) {
+      localStorage.removeItem("chatwave_user");
+    }
     
     if (storedAccounts) {
       try {

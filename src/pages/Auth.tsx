@@ -79,7 +79,8 @@ const Auth = () => {
       // Login success
       signIn({
         id: data.user.id,
-        username: data.user.username
+        username: data.user.username,
+        token: data.token
       });
       
       toast.success("Logged in successfully!");
