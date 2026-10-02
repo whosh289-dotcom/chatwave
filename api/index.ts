@@ -214,7 +214,7 @@ app.get('/api/conversations', async (c) => {
 
   try {
     const { results: participations } = await c.env.DB.prepare(
-      "SELECT conversation_id, last_read_at FROM conversation_participants WHERE user_id = ?"
+      "SELECT conversation_id FROM conversation_participants WHERE user_id = ?"
     ).bind(userId).all();
 
     if (!participations.length) return c.json({ conversations: [] }, 200);
