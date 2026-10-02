@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, LogOut, MessageCircle, Lock, Users, Pin, BellOff, Settings } from "lucide-react";
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 interface ConversationPreview {
   id: string;
   name: string | null;
+  logo_url: string | null;
   otherUsers: { display_name: string | null; user_id: string }[];
   lastMessage?: { content: string; created_at: string };
   is_private: boolean;
@@ -198,6 +199,9 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                   className={`w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors ${selectedConversation === conv.id ? "bg-secondary" : ""}`}
                 >
               <Avatar className="h-10 w-10 shrink-0">
+                {conv.logo_url ? (
+                  <AvatarImage src={conv.logo_url} alt={getConvDisplayName(conv)} className="object-cover" />
+                ) : null}
                 <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
                   {conv.memberCount > 2 ? <Users className="w-4 h-4" /> : getInitials(conv.otherUsers[0]?.display_name)}
                 </AvatarFallback>

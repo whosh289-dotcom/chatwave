@@ -1,9 +1,13 @@
 import { Hono } from 'hono'
+import { scrapeAndStoreGifs } from './src/utils/scrapeGifs'
+import { fetchAndStoreStickers } from './src/tasks/fetch-stickers';
 
 type Bindings = {
   DB: D1Database
   ASSETS: { fetch: typeof fetch }
   RESEND_API_KEY?: string
+  ADMIN_TOKEN?: string
+  BOOST_STATUS?: KVNamespace
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -275,11 +279,58 @@ app.post('/api/conversations/leave', async (c) => {
 
 app.get('/api/stickers', async (c) => {
   try {
-    const { results } = await c.env.DB.prepare("SELECT * FROM stickers").all();
+    const userId = c.req.query('userId');
+    const { results } = await c.env.DB.prepare(
+      "SELECT * FROM stickers WHERE (user_id IS NULL OR user_id = ?) AND approved = TRUE"
+    ).bind(userId).all();
     return c.json(results, 200);
   } catch (e: any) {
     return c.json({ error: e.message }, 500);
   }
+});
+
+app.post('/api/stickers', async (c) => {
+  try {
+    const { url, artistName, userId } = await c.req.json();
+    if (!url || !userId) return c.json({ error: 'Missing fields' }, 400);
+    const id = crypto.randomUUID();
+    await c.env.DB.prepare(
+      "INSERT INTO stickers (id, url, artist_name, user_id) VALUES (?, ?, ?, ?)"
+    ).bind(id, url, artistName || 'Custom Sticker', userId).run();
+    return c.json({ success: true, id }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+// Boost endpoint to scrape GIFs from public sources and add as public stickers
+app.post('/api/boost', async (c) => {
+  // Fire-and-forget the scraping operation
+  scrapeAndStoreGifs(c.env.DB).catch((err) => console.error('Boost scrape error:', err));
+  return c.json({ message: 'Boost started, scraping GIFs…' }, 200);
+});
+
+// Using imported fetchAndStoreStickers implementation
+
+addEventListener('scheduled', async (event) => {
+  await fetchAndStoreStickers(env);
+});
+// Admin endpoints for pending stickers
+app.get('/api/admin/stickers/pending', async (c) => {
+  const token = c.req.header('x-admin-token');
+  if (token !== c.env.ADMIN_TOKEN) return c.json({ error: 'Unauthorized' }, 401);
+  const { results } = await c.env.DB.prepare(`SELECT * FROM stickers WHERE approved = FALSE`).all();
+  return c.json({ pending: results }, 200);
+});
+
+app.post('/api/admin/stickers/approve', async (c) => {
+  const token = c.req.header('x-admin-token');
+  if (token !== c.env.ADMIN_TOKEN) return c.json({ error: 'Unauthorized' }, 401);
+  const { ids } = await c.req.json();
+  if (!Array.isArray(ids) || ids.length === 0) return c.json({ error: 'No IDs provided' }, 400);
+  const placeholders = ids.map(() => '?').join(',');
+  await c.env.DB.prepare(`UPDATE stickers SET approved = TRUE WHERE id IN (${placeholders})`).bind(...ids).run();
+  return c.json({ success: true }, 200);
 });
 
 app.post('/api/conversations/read', async (c) => {
