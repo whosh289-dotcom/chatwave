@@ -93,7 +93,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-background">
+    <div className="min-h-screen w-full flex bg-transparent">
       {/* Left Panel */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 bg-primary p-12 text-primary-foreground">
         <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ const Auth = () => {
       </div>
 
       {/* Right Panel */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-background">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-transparent">
         <div className="w-full max-w-[440px] bg-card p-10 rounded-2xl border border-border shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
           
           <div className="text-center mb-8">

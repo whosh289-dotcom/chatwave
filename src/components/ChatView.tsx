@@ -56,19 +56,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const [bgClass, setBgClass] = useState(() => {
-    const saved = localStorage.getItem("chat-bg") || "dots";
-    return `chat-bg-${saved}`;
-  });
 
-  useEffect(() => {
-    const handleBgChange = () => {
-      const saved = localStorage.getItem("chat-bg") || "dots";
-      setBgClass(`chat-bg-${saved}`);
-    };
-    window.addEventListener("chat-bg-change", handleBgChange);
-    return () => window.removeEventListener("chat-bg-change", handleBgChange);
-  }, []);
 
   const fetchMetadata = async () => {
     if (!user) return;
@@ -208,8 +196,8 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const memberCount = Object.keys(participantNames).length;
 
   return (
-    <div className="flex flex-col h-full bg-background relative overflow-hidden">
-      <div className={`absolute inset-0 ${bgClass} opacity-[0.03] pointer-events-none`}></div>
+    <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
+      
 
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border bg-card">
@@ -279,7 +267,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-background border-t border-border">
+      <div className="p-4 bg-background/80 backdrop-blur-sm border-t border-border">
         <form onSubmit={handleSend} className="flex gap-2 items-end">
           <Popover>
             <PopoverTrigger asChild>
