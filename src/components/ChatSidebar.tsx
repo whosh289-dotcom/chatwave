@@ -108,7 +108,7 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
   };
 
   return (
-    <div className="flex flex-col h-full bg-card/80 backdrop-blur-md">
+    <div className="flex flex-col h-full bg-transparent">
       <div className="p-5 border-b border-border/40">
         <div className="flex items-center justify-between mb-5">
           <DropdownMenu>

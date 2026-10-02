@@ -55,12 +55,12 @@ const GlobalBackground = () => {
   return (
     <div className="fixed inset-0 -z-10 bg-primary overflow-hidden">
       {/* Abstract Animated Shapes from Login Theme */}
-      <div className="absolute w-[600px] h-[600px] bg-primary-foreground/10 rounded-full blur-3xl top-[-20%] left-[-10%] mix-blend-overlay"></div>
-      <div className="absolute w-[800px] h-[800px] bg-accent/20 rounded-full blur-3xl bottom-[-20%] right-[-10%] mix-blend-overlay"></div>
+      <div className="absolute w-[600px] h-[600px] bg-white/20 rounded-full blur-3xl top-[-20%] left-[-10%] mix-blend-overlay"></div>
+      <div className="absolute w-[800px] h-[800px] bg-accent/40 rounded-full blur-3xl bottom-[-20%] right-[-10%] mix-blend-overlay"></div>
       
       {/* 3D Blobs */}
-      <div className="absolute top-[20%] left-[15%] w-64 h-64 bg-primary-foreground/20 backdrop-blur-3xl shadow-2xl animate-pulse" style={{ borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%', animationDuration: '8s' }}></div>
-      <div className="absolute bottom-[20%] right-[15%] w-80 h-80 bg-accent/30 backdrop-blur-3xl shadow-2xl mix-blend-screen animate-pulse" style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%', animationDuration: '12s' }}></div>
+      <div className="absolute top-[20%] left-[15%] w-64 h-64 bg-white/40 backdrop-blur-3xl shadow-2xl animate-pulse mix-blend-overlay" style={{ borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%', animationDuration: '8s' }}></div>
+      <div className="absolute bottom-[20%] right-[15%] w-80 h-80 bg-accent/80 backdrop-blur-3xl shadow-2xl mix-blend-screen animate-pulse" style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%', animationDuration: '12s' }}></div>
       
       {/* User customizable pattern overlay */}
       <div className={`absolute inset-0 pointer-events-none ${bgClass} opacity-10 mix-blend-overlay`}></div>

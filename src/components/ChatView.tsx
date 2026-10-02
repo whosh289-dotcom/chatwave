@@ -200,7 +200,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       
 
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-border bg-card">
+      <div className="flex items-center gap-3 p-4 border-b border-white/10 bg-transparent">
         {onBack && (
           <Button variant="ghost" size="icon" onClick={onBack} className="md:hidden shrink-0">
             <ArrowLeft className="w-5 h-5" />
@@ -245,7 +245,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                 {!isMe && showAvatar && <span className="text-[10px] text-muted-foreground mb-1 ml-1">{senderName}</span>}
                 
                 <div className={`relative rounded-2xl px-4 py-2.5 shadow-sm ${
-                  isMe ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-card border border-border/50 rounded-bl-sm text-foreground'
+                  isMe ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-card/60 backdrop-blur-md border border-white/10 rounded-bl-sm text-foreground'
                 }`}>
                   {msg.gif_url ? (
                     <div className="rounded-lg overflow-hidden mt-1 max-w-[200px]">
@@ -267,7 +267,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-background/80 backdrop-blur-sm border-t border-border">
+      <div className="p-4 bg-transparent border-t border-white/10">
         <form onSubmit={handleSend} className="flex gap-2 items-end">
           <Popover>
             <PopoverTrigger asChild>
@@ -295,7 +295,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 rounded-2xl bg-muted/50 border-transparent focus-visible:bg-background focus-visible:border-primary/30"
+            className="flex-1 rounded-2xl bg-black/20 dark:bg-black/40 text-white border-transparent backdrop-blur-md placeholder:text-white/50 focus-visible:bg-background focus-visible:border-primary/30"
           />
           
           <Button type="submit" disabled={!newMessage.trim() || sending} size="icon" className="h-10 w-10 rounded-full shrink-0 shadow-sm">

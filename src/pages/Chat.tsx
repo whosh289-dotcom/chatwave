@@ -10,7 +10,7 @@ const Chat = () => {
 
   return (
     <div className="flex h-screen bg-transparent md:p-6 lg:p-8">
-      <div className="flex w-full h-full bg-card/95 backdrop-blur-2xl overflow-hidden md:rounded-[2rem] md:border md:border-white/10 md:shadow-2xl shadow-black/20">
+      <div className="flex w-full h-full bg-background/40 backdrop-blur-[40px] overflow-hidden md:rounded-[2rem] md:border md:border-white/20 md:shadow-2xl shadow-black/20">
         {/* Sidebar - hidden on mobile when conversation selected */}
         <div className={`w-full md:w-[380px] shrink-0 border-r border-border ${selectedConversation ? "hidden md:block" : ""}`}>
           <ChatSidebar

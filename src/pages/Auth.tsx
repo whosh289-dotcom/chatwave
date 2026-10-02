@@ -117,7 +117,7 @@ const Auth = () => {
 
       {/* Right Panel */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 bg-transparent">
-        <div className="w-full max-w-[440px] bg-card/95 backdrop-blur-xl p-10 rounded-[2rem] border border-white/10 shadow-2xl relative z-10">
+        <div className="w-full max-w-[440px] bg-background/40 backdrop-blur-[40px] p-10 rounded-[2rem] border border-white/20 shadow-2xl relative z-10">
           
           <div className="text-center mb-8">
             <h2 className="text-[28px] font-bold text-foreground font-heading tracking-tight mb-2">
