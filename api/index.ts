@@ -272,6 +272,16 @@ app.post('/api/conversations/leave', async (c) => {
   }
 });
 
+
+app.get('/api/stickers', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare("SELECT * FROM stickers").all();
+    return c.json(results, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 app.post('/api/conversations/read', async (c) => {
   const { conversationId, userId } = await c.req.json();
   try {
