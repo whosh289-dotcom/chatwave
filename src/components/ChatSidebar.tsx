@@ -117,13 +117,13 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                 <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Avatar className="w-9 h-9 rounded-xl">
                     <AvatarFallback className="bg-transparent text-primary font-bold">
-                      {user?.username?.[0]?.toUpperCase() || "?"}
+                      {(user?.username || (user as any)?.displayName || "?")[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </div>
                 <div className="flex flex-col items-start text-left">
                   <span className="text-sm font-bold font-heading tracking-tight leading-tight">
-                    {user?.username || "Account"}
+                    {user?.username || (user as any)?.displayName || "Account"}
                   </span>
                   <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
                     Switch Account
@@ -143,11 +143,11 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                 >
                   <Avatar className="w-6 h-6 rounded-md">
                     <AvatarFallback className="bg-primary/20 text-xs text-primary font-bold">
-                      {acc?.username?.[0]?.toUpperCase() || "?"}
+                      {(acc?.username || (acc as any)?.displayName || "?")[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <span className={`font-medium text-sm ${acc.id === user?.id ? "text-primary" : ""}`}>
-                    {acc?.username || "Account"}
+                    {acc?.username || (acc as any)?.displayName || "Account"}
                   </span>
                 </DropdownMenuItem>
               ))}
