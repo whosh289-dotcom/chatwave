@@ -82,7 +82,10 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       const res = await fetch(`/api/messages/${conversationId}`);
       if (!res.ok) return;
       const { messages } = await res.json();
-      setMessages(messages);
+      setMessages(prev => {
+        const tempMessages = prev.filter((m: any) => m.id.startsWith("temp-"));
+        return [...messages, ...tempMessages];
+      });
     } catch (e) {
       console.error("Failed to fetch messages", e);
     }
@@ -136,6 +139,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         })
       });
       if (res.ok) {
+        setMessages(prev => prev.filter((m: any) => m.id !== tempId));
         fetchMessages(); // Pull real ID and timestamp from DB
       } else {
         // Revert on failure
@@ -180,6 +184,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         })
       });
       if (res.ok) {
+        setMessages(prev => prev.filter((m: any) => m.id !== tempId));
         fetchMessages();
       } else {
         setMessages(prev => prev.filter(m => m.id !== tempId));
