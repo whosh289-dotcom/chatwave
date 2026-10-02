@@ -14,6 +14,7 @@ import { GifPicker } from "@/components/GifPicker";
 import { ForwardMessageDialog } from "@/components/ForwardMessageDialog";
 import { useCall } from "@/components/CallProvider";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 
 interface Reaction {
   id: string;
