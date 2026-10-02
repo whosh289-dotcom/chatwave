@@ -171,8 +171,8 @@ app.get('/api/users/search', async (c) => {
 
   try {
     const { results } = await c.env.DB.prepare(
-      "SELECT user_id, display_name, username FROM profiles WHERE display_name LIKE ? OR username LIKE ? LIMIT 10"
-    ).bind(`%${q}%`, `%${q}%`).all();
+      "SELECT id as user_id, username as display_name, username FROM users WHERE username LIKE ? LIMIT 10"
+    ).bind(`%${q}%`).all();
 
     return c.json({ users: results }, 200);
   } catch (e: any) {
@@ -233,7 +233,7 @@ app.get('/api/conversations', async (c) => {
     const userIds = Array.from(new Set(allParts.map((p: any) => p.user_id)));
     const userPlaceholders = userIds.map(() => '?').join(',');
     const { results: profiles } = await c.env.DB.prepare(
-      `SELECT user_id, display_name FROM profiles WHERE user_id IN (${userPlaceholders})`
+      `SELECT id as user_id, username as display_name FROM users WHERE id IN (${userPlaceholders})`
     ).bind(...userIds).all();
 
     const profileMap = new Map(profiles.map((p: any) => [p.user_id, p]));

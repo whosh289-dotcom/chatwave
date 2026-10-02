@@ -217,7 +217,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             {convMeta.is_private && <Lock className="w-3.5 h-3.5 text-muted-foreground" />}
           </h2>
           <p className="text-xs text-muted-foreground truncate">
-            {memberCount > 1 ? `${memberCount} members` : "Online"}
+            {memberCount > 2 ? `${memberCount} members` : "Private Message"}
           </p>
         </div>
       </div>
