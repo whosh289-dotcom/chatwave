@@ -30,15 +30,31 @@ export function GifPicker({ onPick }: GifPickerProps) {
           : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_KEY}&limit=24&rating=pg-13`;
         const res = await fetch(endpoint);
         const json = await res.json();
-        setGifs(
-          (json.data || []).map((g: any) => ({
-            id: g.id,
-            url: g.images.original.url,
-            preview: g.images.fixed_width_small.url,
-          }))
-        );
+
+        const fallback = [
+          { id: "1", url: "https://media.giphy.com/media/l41YkxvU8c7J7Bba0/giphy.gif", preview: "https://media.giphy.com/media/l41YkxvU8c7J7Bba0/200w.gif" },
+          { id: "2", url: "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif", preview: "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/200w.gif" },
+          { id: "3", url: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", preview: "https://media.giphy.com/media/JIX9t2j0ZTN9S/200w.gif" },
+          { id: "4", url: "https://media.giphy.com/media/5wWf7GMbT1ZUGl52z70/giphy.gif", preview: "https://media.giphy.com/media/5wWf7GMbT1ZUGl52z70/200w.gif" },
+          { id: "5", url: "https://media.giphy.com/media/VbnUQpnihPSIgIXuZv/giphy.gif", preview: "https://media.giphy.com/media/VbnUQpnihPSIgIXuZv/200w.gif" },
+          { id: "6", url: "https://media.giphy.com/media/BzyTuYCmvSORqs1QKs/giphy.gif", preview: "https://media.giphy.com/media/BzyTuYCmvSORqs1QKs/200w.gif" },
+          { id: "7", url: "https://media.giphy.com/media/VbYj3DTDjOCXy/giphy.gif", preview: "https://media.giphy.com/media/VbYj3DTDjOCXy/200w.gif" },
+          { id: "8", url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjRjOTIyZjQ0ZDJiZTNkNTlhMzM3ODFhODlkZjQ4ZDNhMmQxN2Y1ZCZlcD12MV9pbnRlcm5hbF9naWZzX3NlYXJjaCZjdD1n/M9g12oIfG05Nf0kH4g/giphy.gif", preview: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjRjOTIyZjQ0ZDJiZTNkNTlhMzM3ODFhODlkZjQ4ZDNhMmQxN2Y1ZCZlcD12MV9pbnRlcm5hbF9naWZzX3NlYXJjaCZjdD1n/M9g12oIfG05Nf0kH4g/200w.gif" }
+        ];
+
+        if (json.meta?.status === 403 || json.meta?.status === 401) {
+          setGifs(fallback);
+        } else {
+          setGifs(
+            (json.data || []).map((g: any) => ({
+              id: g.id,
+              url: g.images.original.url,
+              preview: g.images.fixed_width_small.url,
+            }))
+          );
+        }
       } catch {
-        setGifs([]);
+        setGifs(fallback);
       } finally {
         setLoading(false);
       }

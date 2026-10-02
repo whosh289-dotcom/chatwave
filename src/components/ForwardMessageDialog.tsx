@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -29,48 +28,52 @@ export function ForwardMessageDialog({ open, onOpenChange, messageContent, gifUr
   useEffect(() => {
     if (!open || !user) return;
     (async () => {
-      const { data: parts } = await supabase
-        .from("conversation_participants")
-        .select("conversation_id")
-        .eq("user_id", user.id);
-      if (!parts) return;
-      const opts: ConvOption[] = [];
-      for (const p of parts) {
-        if (p.conversation_id === excludeConversationId) continue;
-        const { data: conv } = await supabase.from("conversations").select("name").eq("id", p.conversation_id).single();
-        const { data: others } = await supabase
-          .from("conversation_participants")
-          .select("user_id")
-          .eq("conversation_id", p.conversation_id)
-          .neq("user_id", user.id);
-        let label = conv?.name || "";
-        if (!label && others?.length) {
-          const names: string[] = [];
-          for (const o of others) {
-            const { data: pr } = await supabase.from("profiles").select("display_name").eq("user_id", o.user_id).single();
-            names.push(pr?.display_name || "Unknown");
+      try {
+        const res = await fetch(`/api/conversations?userId=${user.id}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const opts: ConvOption[] = [];
+        for (const c of data.conversations) {
+          if (c.id === excludeConversationId) continue;
+          let label = c.name || "";
+          if (!label && c.otherUsers?.length) {
+            label = c.otherUsers.map((u: any) => u.display_name).join(", ");
           }
-          label = names.join(", ");
+          opts.push({ 
+            id: c.id, 
+            label: label || "Untitled", 
+            isGroup: (c.otherUsers?.length ?? 0) > 1 || c.memberCount > 2 
+          });
         }
-        opts.push({ id: p.conversation_id, label: label || "Untitled", isGroup: (others?.length ?? 0) > 1 });
+        setConvs(opts);
+      } catch (e) {
+        console.error(e);
       }
-      setConvs(opts);
     })();
   }, [open, user, excludeConversationId]);
 
   const forward = async (toConvId: string) => {
     if (!user) return;
-    const { error } = await supabase.from("messages").insert({
-      conversation_id: toConvId,
-      sender_id: user.id,
-      content: messageContent,
-      gif_url: gifUrl,
-      message_type: gifUrl ? "gif" : "text",
-    });
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Forwarded");
-      onOpenChange(false);
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: toConvId,
+          senderId: user.id,
+          content: messageContent,
+          gifUrl: gifUrl
+        })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Failed to forward");
+      } else {
+        toast.success("Forwarded");
+        onOpenChange(false);
+      }
+    } catch (e: any) {
+      toast.error(e.message);
     }
   };
 

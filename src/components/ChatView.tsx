@@ -138,7 +138,15 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
     e.preventDefault();
     if (!newMessage.trim() || !user) return;
     
-    const content = newMessage.trim();
+    let content = newMessage.trim();
+    if (content.startsWith("/boost")) {
+      if (content !== "/boost 10000") {
+        toast.error("must be exact /boost 10000");
+        return;
+      }
+      content = `🚀 Boosted by 10000!`;
+    }
+
     setNewMessage(""); // Clear immediately for snappy feel
     setReplyTo(null);
 
@@ -240,6 +248,16 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         onDeleted={() => onBack?.()} 
       />
 
+      {forwardMsg && (
+        <ForwardMessageDialog
+          open={!!forwardMsg}
+          onOpenChange={(open) => !open && setForwardMsg(null)}
+          messageContent={forwardMsg.content}
+          gifUrl={forwardMsg.gif_url}
+          excludeConversationId={conversationId}
+        />
+      )}
+
       {/* Header */}
       <div 
         className="flex items-center gap-3 p-4 border-b border-white/10 bg-transparent cursor-pointer hover:bg-white/5 transition-colors"
@@ -278,7 +296,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               {!isMe && (
                 <div className="w-8 shrink-0 flex items-end">
                   {showAvatar && (
-                    <Avatar className="w-8 h-8">
+                     <Avatar className="w-8 h-8">
                       <AvatarFallback className="bg-secondary text-xs">{senderName[0]?.toUpperCase()}</AvatarFallback>
                     </Avatar>
                   )}
@@ -299,20 +317,27 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                     <p className="text-[15px] leading-relaxed break-words whitespace-pre-wrap">{renderMarkdown(msg.content)}</p>
                   )}
                   
-                  {isMe && !msg.id.startsWith("temp-") && (
-                    <div className="absolute -left-16 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-all">
-                      <button onClick={() => {
-                        setEditingMsg(msg);
-                        setNewMessage(msg.content);
-                      }} className="p-1.5 text-primary hover:bg-primary/10 rounded-full">
-                        <FilePenLine className="w-4 h-4" />
+                  {!msg.id.startsWith("temp-") && (
+                    <div className={`absolute ${isMe ? '-left-24' : '-right-8'} top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-all`}>
+                      <button onClick={() => setForwardMsg(msg)} className="p-1.5 text-primary hover:bg-primary/10 rounded-full">
+                        <Forward className="w-4 h-4" />
                       </button>
-                      <button onClick={async () => {
-                        await fetch(`/api/messages/${msg.id}`, { method: 'DELETE' });
-                        fetchMessages();
-                      }} className="p-1.5 text-destructive hover:bg-destructive/10 rounded-full">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {isMe && (
+                        <>
+                          <button onClick={() => {
+                            setEditingMsg(msg);
+                            setNewMessage(msg.content);
+                          }} className="p-1.5 text-primary hover:bg-primary/10 rounded-full">
+                            <FilePenLine className="w-4 h-4" />
+                          </button>
+                          <button onClick={async () => {
+                            await fetch(`/api/messages/${msg.id}`, { method: 'DELETE' });
+                            fetchMessages();
+                          }} className="p-1.5 text-destructive hover:bg-destructive/10 rounded-full">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                   <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end text-primary-foreground/70' : 'justify-start text-muted-foreground'} text-[10px]`}>
