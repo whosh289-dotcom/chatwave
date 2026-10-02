@@ -9,8 +9,8 @@ const Chat = () => {
   const [showNewDialog, setShowNewDialog] = useState(false);
 
   return (
-    <div className="flex h-screen bg-background md:p-6 lg:p-8">
-      <div className="flex w-full h-full bg-card overflow-hidden md:rounded-3xl md:border md:border-border md:shadow-2xl md:shadow-primary/5">
+    <div className="flex h-screen bg-transparent md:p-6 lg:p-8">
+      <div className="flex w-full h-full bg-card/95 backdrop-blur-2xl overflow-hidden md:rounded-[2rem] md:border md:border-white/10 md:shadow-2xl shadow-black/20">
         {/* Sidebar - hidden on mobile when conversation selected */}
         <div className={`w-full md:w-[380px] shrink-0 border-r border-border ${selectedConversation ? "hidden md:block" : ""}`}>
           <ChatSidebar
@@ -30,7 +30,7 @@ const Chat = () => {
               />
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center bg-transparent">
+            <div className="flex-1 flex flex-col items-center justify-center bg-transparent/50 backdrop-blur-md rounded-2xl m-4 border border-border/50">
               <div className="w-24 h-24 rounded-[2rem] bg-primary/10 flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <MessageCircle className="w-10 h-10 text-primary stroke-[2.5]" />
               </div>
