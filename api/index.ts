@@ -225,6 +225,28 @@ app.post('/api/conversations', async (c) => {
 });
 
 
+
+app.delete('/api/messages/:id', async (c) => {
+  const id = c.req.param('id');
+  try {
+    await c.env.DB.prepare("DELETE FROM messages WHERE id = ?").bind(id).run();
+    return c.json({ success: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+app.put('/api/messages/:id', async (c) => {
+  const id = c.req.param('id');
+  const { content } = await c.req.json();
+  try {
+    await c.env.DB.prepare("UPDATE messages SET content = ? WHERE id = ?").bind(content, id).run();
+    return c.json({ success: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 app.post('/api/conversations/leave', async (c) => {
   const { conversationId, userId } = await c.req.json();
   if (!conversationId || !userId) return c.json({ error: 'Missing fields' }, 400);

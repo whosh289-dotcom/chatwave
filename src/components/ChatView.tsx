@@ -39,6 +39,17 @@ interface ChatViewProps {
 
 const QUICK_REACTIONS = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
 
+
+const renderMarkdown = (text: string) => {
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|~.*?~)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith('*') && part.endsWith('*')) return <em key={i}>{part.slice(1, -1)}</em>;
+    if (part.startsWith('~') && part.endsWith('~')) return <del key={i}>{part.slice(1, -1)}</del>;
+    return <span key={i}>{part}</span>;
+  });
+};
+
 const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const { user } = useAuth();
   const { resolvedTheme } = useTheme();
@@ -283,9 +294,17 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                       <img src={msg.gif_url.replace('[GIF] ', '')} alt="GIF" className="w-full h-auto" />
                     </div>
                   ) : (
-                    <p className="text-[15px] leading-relaxed break-words whitespace-pre-wrap">{msg.content}</p>
+                    <p className="text-[15px] leading-relaxed break-words whitespace-pre-wrap">{renderMarkdown(msg.content)}</p>
                   )}
                   
+                  {isMe && !msg.id.startsWith("temp-") && (
+                    <button onClick={async () => {
+                      await fetch(`/api/messages/${msg.id}`, { method: 'DELETE' });
+                      fetchMessages();
+                    }} className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 text-destructive hover:bg-destructive/10 rounded-full transition-all">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                   <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end text-primary-foreground/70' : 'justify-start text-muted-foreground'} text-[10px]`}>
                     <span>{format(new Date(msg.created_at), "HH:mm")}</span>
                     {isMe && !msg.id.startsWith("temp-") && (
