@@ -236,6 +236,17 @@ app.delete('/api/messages/:id', async (c) => {
   }
 });
 
+
+app.delete('/api/messages/conversation/:id', async (c) => {
+  const id = c.req.param('id');
+  try {
+    await c.env.DB.prepare("DELETE FROM messages WHERE conversation_id = ?").bind(id).run();
+    return c.json({ success: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 app.put('/api/messages/:id', async (c) => {
   const id = c.req.param('id');
   const { content } = await c.req.json();

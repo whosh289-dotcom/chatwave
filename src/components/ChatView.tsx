@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, ArrowLeft, Lock, Settings, Smile, ImageIcon, Reply, Trash2, X, MoreVertical, Check, CheckCheck, Forward, Phone, Video, Bell } from "lucide-react";
+import { Send, ArrowLeft, FilePenLine, Lock, Settings, Smile, ImageIcon, Reply, Trash2, X, MoreVertical, Check, CheckCheck, Forward, Phone, Video, Bell } from "lucide-react";
 import { format } from "date-fns";
 import GroupSettingsDialog from "@/components/GroupSettingsDialog";
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
@@ -63,6 +63,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const [otherReadTimes, setOtherReadTimes] = useState<Record<string, string>>({});
   const [showGroupSettings, setShowGroupSettings] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [editingMsg, setEditingMsg] = useState<Message | null>(null);
   const [forwardMsg, setForwardMsg] = useState<Message | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -298,12 +299,20 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   )}
                   
                   {isMe && !msg.id.startsWith("temp-") && (
-                    <button onClick={async () => {
-                      await fetch(`/api/messages/${msg.id}`, { method: 'DELETE' });
-                      fetchMessages();
-                    }} className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 text-destructive hover:bg-destructive/10 rounded-full transition-all">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="absolute -left-16 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-all">
+                      <button onClick={() => {
+                        setEditingMsg(msg);
+                        setNewMessage(msg.content);
+                      }} className="p-1.5 text-primary hover:bg-primary/10 rounded-full">
+                        <FilePenLine className="w-4 h-4" />
+                      </button>
+                      <button onClick={async () => {
+                        await fetch(`/api/messages/${msg.id}`, { method: 'DELETE' });
+                        fetchMessages();
+                      }} className="p-1.5 text-destructive hover:bg-destructive/10 rounded-full">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                   <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end text-primary-foreground/70' : 'justify-start text-muted-foreground'} text-[10px]`}>
                     <span>{format(new Date(msg.created_at), "HH:mm")}</span>
