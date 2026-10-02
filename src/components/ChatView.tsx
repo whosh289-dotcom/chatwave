@@ -49,14 +49,13 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const [sending, setSending] = useState(false);
   const [convMeta, setConvMeta] = useState<{ is_private: boolean; owner_id: string; name: string | null }>({ is_private: false, owner_id: "", name: null });
   const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
+  const [otherReadTimes, setOtherReadTimes] = useState<Record<string, string>>({});
   const [showGroupSettings, setShowGroupSettings] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMsg, setForwardMsg] = useState<Message | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-
 
   const fetchMetadata = async () => {
     if (!user) return;
@@ -68,8 +67,13 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       if (meta) {
         setConvMeta({ is_private: meta.is_private, owner_id: "", name: meta.name });
         const names: Record<string, string> = {};
-        meta.otherUsers.forEach((u: any) => { names[u.user_id] = u.display_name; });
+        const readTimes: Record<string, string> = {};
+        meta.otherUsers.forEach((u: any) => { 
+          names[u.user_id] = u.display_name;
+          readTimes[u.user_id] = u.last_read_at;
+        });
         setParticipantNames(names);
+        setOtherReadTimes(readTimes);
       }
     } catch (e) {
       console.error("Failed to fetch meta", e);
@@ -96,13 +100,26 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
     fetchMessages();
     const interval = setInterval(() => {
       fetchMessages();
+      fetchMetadata();
     }, 2000);
     return () => clearInterval(interval);
   }, [conversationId, user]);
 
   useEffect(() => {
+    if (!user || messages.length === 0) return;
+    fetch('/api/conversations/read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversationId, userId: user.id })
+    }).catch(console.error);
+  }, [conversationId, messages.length, user]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView();
   }, [messages.length]);
+
+  const readTimes = Object.values(otherReadTimes).map(d => new Date(d || 0).getTime());
+  const maxReadTime = readTimes.length > 0 ? Math.min(...readTimes) : 0;
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,11 +220,20 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   return (
     <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
       
+      <GroupSettingsDialog 
+        open={showGroupSettings} 
+        onOpenChange={setShowGroupSettings} 
+        conversationId={conversationId} 
+        onDeleted={() => onBack?.()} 
+      />
 
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-white/10 bg-transparent">
+      <div 
+        className="flex items-center gap-3 p-4 border-b border-white/10 bg-transparent cursor-pointer hover:bg-white/5 transition-colors"
+        onClick={() => setShowGroupSettings(true)}
+      >
         {onBack && (
-          <Button variant="ghost" size="icon" onClick={onBack} className="md:hidden shrink-0">
+          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onBack(); }} className="md:hidden shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         )}
@@ -262,6 +288,13 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   
                   <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end text-primary-foreground/70' : 'justify-start text-muted-foreground'} text-[10px]`}>
                     <span>{format(new Date(msg.created_at), "HH:mm")}</span>
+                    {isMe && !msg.id.startsWith("temp-") && (
+                      new Date(msg.created_at).getTime() <= maxReadTime ? (
+                        <CheckCheck className="w-3.5 h-3.5 text-blue-400" />
+                      ) : (
+                        <Check className="w-3 h-3 opacity-70" />
+                      )
+                    )}
                   </div>
                 </div>
               </div>

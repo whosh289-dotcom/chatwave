@@ -22,6 +22,7 @@ import {
   Check,
   X,
   Trash2,
+  LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -180,6 +181,22 @@ const GroupSettingsDialog = ({ open, onOpenChange, conversationId, onDeleted }: 
     return null;
   };
 
+  const handleLeaveGroup = async () => {
+    try {
+      const res = await fetch('/api/conversations/leave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId, userId: user?.id })
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Left group");
+      onOpenChange(false);
+      onDeleted?.();
+    } catch(e) {
+      toast.error("Failed to leave group");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
@@ -274,13 +291,21 @@ const GroupSettingsDialog = ({ open, onOpenChange, conversationId, onDeleted }: 
           </div>
         </div>
 
-        {/* Delete Group - owner only */}
-        {myRole === "owner" && (
+        {/* Delete / Leave Group */}
+        {myRole === "owner" ? (
           <>
             <Separator />
             <Button variant="destructive" className="w-full gap-2" onClick={handleDeleteGroup}>
               <Trash2 className="w-4 h-4" />
               Delete Group
+            </Button>
+          </>
+        ) : (
+          <>
+            <Separator />
+            <Button variant="destructive" className="w-full gap-2" onClick={handleLeaveGroup}>
+              <LogOut className="w-4 h-4" />
+              Leave Group
             </Button>
           </>
         )}

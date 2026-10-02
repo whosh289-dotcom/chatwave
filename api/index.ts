@@ -270,7 +270,7 @@ app.get('/api/conversations', async (c) => {
     ).bind(...convIds).all();
 
     const { results: allParts } = await c.env.DB.prepare(
-      `SELECT conversation_id, user_id FROM conversation_participants WHERE conversation_id IN (${placeholders})`
+      `SELECT conversation_id, user_id, last_read_at FROM conversation_participants WHERE conversation_id IN (${placeholders})`
     ).bind(...convIds).all();
 
     const userIds = Array.from(new Set(allParts.map((p: any) => p.user_id)));
@@ -289,7 +289,10 @@ app.get('/api/conversations', async (c) => {
       const convId = part.conversation_id;
       const convData = convs.find((c: any) => c.id === convId);
       const otherParts = allParts.filter((p: any) => p.conversation_id === convId && p.user_id !== userId);
-      const otherUsers = otherParts.map((p: any) => profileMap.get(p.user_id) || { display_name: "Unknown", user_id: p.user_id });
+      const otherUsers = otherParts.map((p: any) => {
+        const profile = profileMap.get(p.user_id) || { display_name: "Unknown", user_id: p.user_id };
+        return { ...profile, last_read_at: p.last_read_at };
+      });
       const msgsForConv = allMsgs.filter((m: any) => m.conversation_id === convId);
       const lastMsg = msgsForConv[0]; 
 
