@@ -236,6 +236,15 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                 <ContextMenuItem onClick={() => toggleMute(conv)}>
                   <BellOff className="w-3.5 h-3.5 mr-2" />{conv.muted ? "Unmute" : "Mute"}
                 </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem className="text-destructive" onClick={async () => {
+                  try {
+                    await fetch('/api/conversations/leave', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ conversationId: conv.id, userId: user?.id }) });
+                    fetchConversations();
+                  } catch (e) {}
+                }}>
+                  <LogOut className="w-3.5 h-3.5 mr-2" />Leave Chat
+                </ContextMenuItem>
                 {conv.memberCount === 2 && conv.otherUsers[0]?.user_id && (
                   <>
                     <ContextMenuSeparator />

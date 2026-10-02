@@ -224,13 +224,40 @@ app.post('/api/conversations', async (c) => {
   }
 });
 
+
+app.post('/api/conversations/leave', async (c) => {
+  const { conversationId, userId } = await c.req.json();
+  if (!conversationId || !userId) return c.json({ error: 'Missing fields' }, 400);
+
+  try {
+    await c.env.DB.prepare(
+      "DELETE FROM conversation_participants WHERE conversation_id = ? AND user_id = ?"
+    ).bind(conversationId, userId).run();
+    return c.json({ success: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+app.post('/api/conversations/read', async (c) => {
+  const { conversationId, userId } = await c.req.json();
+  try {
+    await c.env.DB.prepare(
+      "UPDATE conversation_participants SET last_read_at = CURRENT_TIMESTAMP WHERE conversation_id = ? AND user_id = ?"
+    ).bind(conversationId, userId).run();
+    return c.json({ success: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 app.get('/api/conversations', async (c) => {
   const userId = c.req.query('userId');
   if (!userId) return c.json({ error: 'Missing userId' }, 400);
 
   try {
     const { results: participations } = await c.env.DB.prepare(
-      "SELECT conversation_id FROM conversation_participants WHERE user_id = ?"
+      "SELECT conversation_id, last_read_at FROM conversation_participants WHERE user_id = ?"
     ).bind(userId).all();
 
     if (!participations.length) return c.json({ conversations: [] }, 200);
