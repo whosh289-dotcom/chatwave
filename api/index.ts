@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import { scrapeAndStoreGifs } from './src/utils/scrapeGifs'
-import { fetchAndStoreStickers } from './src/tasks/fetch-stickers';
+import { scrapeAndStoreGifs } from '../src/utils/scrapeGifs'
+import { fetchAndStoreStickers } from '../src/tasks/fetch-stickers';
 
 type Bindings = {
   DB: D1Database
