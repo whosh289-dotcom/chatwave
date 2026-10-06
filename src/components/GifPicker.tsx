@@ -17,18 +17,16 @@ interface GifPickerProps {
 
 // Curated reliable public GIFs (zero Giphy, direct CDN links)
 const FALLBACK_GIFS: Gif[] = [
-  { id: "f1", url: "https://media.tenor.com/2s_1n01f_8EAAAAC/cat-cat-meme.gif", artist_name: "Cat Dance" },
-  { id: "f2", url: "https://media.tenor.com/On7KVXhzHH8AAAAC/cat-vibing.gif", artist_name: "Cat Vibing" },
-  { id: "f3", url: "https://media.tenor.com/IHdlTRsmKcAAAAAC/laughing-laugh.gif", artist_name: "Laughing" },
-  { id: "f4", url: "https://media.tenor.com/uM_Zg8n4r-8AAAAC/excited-cheering.gif", artist_name: "Excited" },
-  { id: "f5", url: "https://media.tenor.com/Wf_6fD-E-b8AAAAC/thumbs-up-approve.gif", artist_name: "Thumbs Up" },
-  { id: "f6", url: "https://media.tenor.com/bC1F3Y6i3sEAAAAC/nod-yes.gif", artist_name: "Nod Yes" },
-  { id: "f7", url: "https://media.tenor.com/Qj15H02wZf0AAAAC/confetti-celebrate.gif", artist_name: "Celebrate" },
-  { id: "f8", url: "https://media.tenor.com/E64Zl5Y8BVkAAAAC/doge-dance.gif", artist_name: "Doge" },
-  { id: "f9", url: "https://media.tenor.com/kHhrvdjVx1EAAAAC/mind-blown.gif", artist_name: "Mind Blown" },
-  { id: "f10", url: "https://media.tenor.com/g0tA7M49uGEAAAAC/shocked-surprised.gif", artist_name: "Shocked" },
-  { id: "f11", url: "https://media.tenor.com/0v_h_6N7fWkAAAAC/heart-love.gif", artist_name: "Heart Love" },
-  { id: "f12", url: "https://media.tenor.com/y1Cvd2rC27kAAAAC/bye-wave.gif", artist_name: "Wave Goodbye" }
+  { id: "f1", url: "https://media.tenor.com/aGj-frNYMFEAAAAM/cat-cat-dance.gif", artist_name: "Cat Dance" },
+  { id: "f2", url: "https://media.tenor.com/WIv5hUoIVHIAAAAM/cat-yes-sir.gif", artist_name: "Yes Sir" },
+  { id: "f3", url: "https://media.tenor.com/OAmsNF7THbsAAAAM/cat-dancing-cat.gif", artist_name: "Vibing Cat" },
+  { id: "f4", url: "https://media.tenor.com/ejvK-0-pbH4AAAAM/shocked-shocked-cat.gif", artist_name: "Shocked" },
+  { id: "f5", url: "https://media.tenor.com/Wid2X8CXwusAAAAM/screaming-cat-cat.gif", artist_name: "Screaming" },
+  { id: "f6", url: "https://media.tenor.com/eKcXzYB0Eu8AAAAM/angry.gif", artist_name: "Angry Face" },
+  { id: "f7", url: "https://upload.wikimedia.org/wikipedia/commons/2/2c/Rotating_earth_%28large%29.gif", artist_name: "Rotating Earth" },
+  { id: "f8", url: "https://upload.wikimedia.org/wikipedia/commons/e/e8/Newtons_cradle_animation_book.gif", artist_name: "Newton's Cradle" },
+  { id: "f9", url: "https://upload.wikimedia.org/wikipedia/commons/d/dd/Muybridge_race_horse_animated.gif", artist_name: "Running Horse" },
+  { id: "f10", url: "https://upload.wikimedia.org/wikipedia/commons/2/25/3Ring_release_animation.gif", artist_name: "Chain Reaction" }
 ];
 
 const CATEGORIES = [

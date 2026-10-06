@@ -300,54 +300,68 @@ app.get('/api/stickers', async (c) => {
   }
 });
 
-// Real-time public GIF search from free open public endpoints (Tenor public & Reddit, zero Giphy)
+// Real-time public GIF search from free open public endpoints (Scrapes public Tenor & Wikimedia, zero Giphy)
 app.get('/api/gifs/search', async (c) => {
-  const query = (c.req.query('q') || 'trending').trim();
+  const query = (c.req.query('q') || 'trending').trim().toLowerCase().replace(/\s+/g, '-');
+  
   try {
-    // 1. Fetch from Tenor public feed
-    const tenorEndpoint = query === 'trending'
-      ? 'https://g.tenor.com/v1/trending?limit=30&media_filter=minimal'
-      : `https://g.tenor.com/v1/search?q=${encodeURIComponent(query)}&limit=30&media_filter=minimal`;
-    const res = await fetch(tenorEndpoint);
-    if (res.ok) {
-      const data: any = await res.json();
-      const results = (data.results || []).map((item: any) => ({
-        id: item.id || crypto.randomUUID(),
-        url: item.media?.[0]?.gif?.url || item.media?.[0]?.tinygif?.url || item.url,
-        artist_name: item.content_description || query,
-      })).filter((g: any) => Boolean(g.url));
+    // 1. Scrape live from public Tenor search page (Zero Giphy, no API key needed)
+    const targetUrl = `https://tenor.com/search/${encodeURIComponent(query)}-gifs`;
+    const res = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+      }
+    });
 
-      if (results.length > 0) {
+    if (res.ok) {
+      const html = await res.text();
+      const regex = /https:\/\/media\.tenor\.com\/[A-Za-z0-9_-]+\/[A-Za-z0-9_.-]+\.gif/g;
+      const matches = Array.from(new Set(html.match(regex) || []));
+
+      if (matches.length > 0) {
+        const results = matches.slice(0, 30).map((url, i) => {
+          const parts = url.split('/');
+          const filename = parts[parts.length - 1].replace('.gif', '').replace(/[-_]+/g, ' ');
+          return {
+            id: `tenor-${i}-${crypto.randomUUID()}`,
+            url,
+            artist_name: filename || query
+          };
+        });
         return c.json(results, 200);
       }
     }
   } catch (err) {
-    console.error('Tenor GIF search failed:', err);
+    console.error('Tenor web scrape failed:', err);
   }
 
   try {
-    // 2. Fetch from Reddit r/gifs public JSON feed
-    const redditUrl = query === 'trending'
-      ? 'https://www.reddit.com/r/gifs/hot.json?limit=30'
-      : `https://www.reddit.com/r/gifs/search.json?q=${encodeURIComponent(query)}&restrict_sr=1&limit=30`;
-    const res = await fetch(redditUrl, { headers: { 'User-Agent': 'ChatWave/1.0' } });
+    // 2. Fallback: Wikimedia Commons public animated GIF search
+    const wikiUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=filemime:image/gif+${encodeURIComponent(query)}&gsrlimit=20&prop=imageinfo&iiprop=url`;
+    const res = await fetch(wikiUrl);
     if (res.ok) {
       const data: any = await res.json();
-      const posts = data?.data?.children || [];
-      const gifs = posts
-        .map((p: any) => ({
-          id: p.data?.id || crypto.randomUUID(),
-          url: p.data?.url_overridden_by_dest || p.data?.url,
-          artist_name: p.data?.title || 'Reddit',
-        }))
-        .filter((g: any) => g.url && (g.url.endsWith('.gif') || g.url.includes('.gif')));
+      const pages = Object.values(data?.query?.pages || {});
+      const gifs = pages
+        .map((p: any) => {
+          const info = p?.imageinfo?.[0];
+          if (!info?.url) return null;
+          const title = (p?.title || '').replace(/^File:/, '').replace(/\.gif$/i, '');
+          return {
+            id: `wiki-${p?.pageid || crypto.randomUUID()}`,
+            url: info.url,
+            artist_name: title || 'Wikimedia'
+          };
+        })
+        .filter(Boolean);
 
       if (gifs.length > 0) {
         return c.json(gifs, 200);
       }
     }
   } catch (err) {
-    console.error('Reddit GIF search failed:', err);
+    console.error('Wikimedia GIF search failed:', err);
   }
 
   return c.json([], 200);
