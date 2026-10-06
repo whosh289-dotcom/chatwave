@@ -97,6 +97,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const [convMeta, setConvMeta] = useState<{ is_private: boolean; owner_id: string; name: string | null; logo_url: string | null }>({ is_private: false, owner_id: "", name: null, logo_url: null });
   const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
   const [otherReadTimes, setOtherReadTimes] = useState<Record<string, string>>({});
+  const [otherUsersList, setOtherUsersList] = useState<{ user_id: string; display_name: string; last_seen_at?: string | null; last_read_at?: string }[]>([]);
   const [showGroupSettings, setShowGroupSettings] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [editingMsg, setEditingMsg] = useState<Message | null>(null);
@@ -122,6 +123,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       const meta = conversations.find((c: any) => c.id === conversationId);
       if (meta) {
         setConvMeta({ is_private: meta.is_private, owner_id: "", name: meta.name, logo_url: meta.logo_url || null });
+        setOtherUsersList(meta.otherUsers || []);
         const names: Record<string, string> = {};
         const readTimes: Record<string, string> = {};
         meta.otherUsers.forEach((u: any) => {
@@ -354,6 +356,19 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const memberCount = Object.keys(participantNames).length + 1; // +1 for self
   const isGroup = memberCount > 2;
 
+  // Real-time presence detection for 1-on-1 chats
+  const otherUser = otherUsersList[0];
+  const isOtherUserOnline = useMemo(() => {
+    if (isGroup || !otherUser?.last_seen_at) return false;
+    const dateStr = otherUser.last_seen_at;
+    const iso = dateStr.includes('T') ? (dateStr.endsWith('Z') ? dateStr : dateStr + 'Z') : dateStr.replace(' ', 'T') + 'Z';
+    const lastSeenMs = new Date(iso).getTime();
+    if (isNaN(lastSeenMs)) return false;
+    // Considered active if seen within the last 25 seconds
+    const diffMs = Math.abs(Date.now() - lastSeenMs);
+    return diffMs < 25000;
+  }, [isGroup, otherUser?.last_seen_at]);
+
   // Date separators
   const getDateKey = (dateStr: string) => format(new Date(dateStr), "yyyy-MM-dd");
 
@@ -415,7 +430,9 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                 {isGroup ? <Users className="w-5 h-5" /> : headerTitle[0]?.toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] border-2 border-[#090a10]" />
+            {isOtherUserOnline && (
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] border-2 border-[#090a10]" />
+            )}
           </div>
           <div className="flex-1 overflow-hidden">
             <h2 className="font-bold font-heading text-sm text-white truncate flex items-center gap-2">
@@ -423,10 +440,21 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               {convMeta.is_private && <Lock className="w-3.5 h-3.5 text-white/40" />}
             </h2>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                {isGroup ? `${memberCount} members` : "Online"}
-              </span>
+              {isGroup ? (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-white/50 text-[10px] font-mono font-medium">
+                  {memberCount} members
+                </span>
+              ) : isOtherUserOnline ? (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Active now
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-white/40 text-[10px] font-mono font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                  Offline
+                </span>
+              )}
             </div>
           </div>
         </div>

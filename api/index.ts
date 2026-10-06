@@ -432,11 +432,26 @@ app.post('/api/conversations/read', async (c) => {
   }
 });
 
+app.post('/api/users/heartbeat', async (c) => {
+  try {
+    const { userId } = await c.req.json();
+    if (userId) {
+      await c.env.DB.prepare("UPDATE users SET last_seen_at = CURRENT_TIMESTAMP WHERE id = ?").bind(userId).run();
+    }
+    return c.json({ success: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 app.get('/api/conversations', async (c) => {
   const userId = c.req.query('userId');
   if (!userId) return c.json({ error: 'Missing userId' }, 400);
 
   try {
+    // Keep user presence updated on each poll
+    await c.env.DB.prepare("UPDATE users SET last_seen_at = CURRENT_TIMESTAMP WHERE id = ?").bind(userId).run().catch(() => {});
+
     const { results: participations } = await c.env.DB.prepare(
       "SELECT conversation_id, last_read_at FROM conversation_participants WHERE user_id = ?"
     ).bind(userId).all();
@@ -457,7 +472,7 @@ app.get('/api/conversations', async (c) => {
     const userIds = Array.from(new Set(allParts.map((p: any) => p.user_id)));
     const userPlaceholders = userIds.map(() => '?').join(',');
     const { results: profiles } = await c.env.DB.prepare(
-      `SELECT id as user_id, username as display_name FROM users WHERE id IN (${userPlaceholders})`
+      `SELECT id as user_id, username as display_name, last_seen_at FROM users WHERE id IN (${userPlaceholders})`
     ).bind(...userIds).all();
 
     const profileMap = new Map(profiles.map((p: any) => [p.user_id, p]));
@@ -471,7 +486,7 @@ app.get('/api/conversations', async (c) => {
       const convData = convs.find((c: any) => c.id === convId);
       const otherParts = allParts.filter((p: any) => p.conversation_id === convId && p.user_id !== userId);
       const otherUsers = otherParts.map((p: any) => {
-        const profile = profileMap.get(p.user_id) || { display_name: "Unknown", user_id: p.user_id };
+        const profile = profileMap.get(p.user_id) || { display_name: "Unknown", user_id: p.user_id, last_seen_at: null };
         return { ...profile, last_read_at: p.last_read_at };
       });
       const msgsForConv = allMsgs.filter((m: any) => m.conversation_id === convId);

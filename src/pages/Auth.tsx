@@ -124,7 +124,7 @@ const Auth = () => {
               </span>
             </h1>
             <p className="text-sm text-white/50 leading-relaxed max-w-md">
-              Powered by Cloudflare Global Edge. Ultra low-latency state synchronization with frosted glass bento design.
+              High-performance encrypted real-time messaging. Ultra low-latency state synchronization with frosted glass bento design.
             </p>
           </div>
 
@@ -174,7 +174,7 @@ const Auth = () => {
         </div>
         
         <div className="text-xs font-mono text-white/30 flex items-center justify-between">
-          <span>Cloudflare Edge Architecture</span>
+          <span>Global Real-time Architecture</span>
           <span>© 2026 ChatWave Engine</span>
         </div>
       </div>
