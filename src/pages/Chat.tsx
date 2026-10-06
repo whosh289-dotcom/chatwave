@@ -43,7 +43,7 @@ const Chat = () => {
 
                 <div className="pill-badge mb-3 text-indigo-400 border-indigo-500/25 bg-indigo-500/10">
                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-                  Connected &bull; D1 Cloud Network
+                  Connected &bull; Global Edge Network
                 </div>
 
                 <h2 className="text-3xl lg:text-4xl font-heading font-black tracking-tight text-white mb-3">

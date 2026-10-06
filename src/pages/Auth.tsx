@@ -124,7 +124,7 @@ const Auth = () => {
               </span>
             </h1>
             <p className="text-sm text-white/50 leading-relaxed max-w-md">
-              Powered by Cloudflare Workers and D1 SQLite. Ultra low-latency state synchronization with frosted glass bento design.
+              Powered by Cloudflare Global Edge. Ultra low-latency state synchronization with frosted glass bento design.
             </p>
           </div>
 
@@ -163,7 +163,7 @@ const Auth = () => {
               </div>
               <div className="text-center p-2 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                 <div className="text-xs font-mono font-bold text-emerald-400">100%</div>
-                <div className="text-[9px] font-mono text-white/40 uppercase">D1 Native</div>
+                <div className="text-[9px] font-mono text-white/40 uppercase">Encrypted</div>
               </div>
               <div className="text-center p-2 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                 <div className="text-xs font-mono font-bold text-purple-400">P2P</div>
