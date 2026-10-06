@@ -40,30 +40,16 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const GlobalBackground = () => {
-  const [bgClass, setBgClass] = useState(() => {
-    return `chat-bg-${localStorage.getItem("chat-bg") || "dots"}`;
-  });
-
-  useEffect(() => {
-    const handleBgChange = () => {
-      setBgClass(`chat-bg-${localStorage.getItem("chat-bg") || "dots"}`);
-    };
-    window.addEventListener("chat-bg-change", handleBgChange);
-    return () => window.removeEventListener("chat-bg-change", handleBgChange);
-  }, []);
-
   return (
-    <div className="fixed inset-0 -z-10 bg-primary overflow-hidden">
-      {/* Abstract Animated Shapes from Login Theme */}
-      <div className="absolute w-[600px] h-[600px] bg-white/20 rounded-full blur-3xl top-[-20%] left-[-10%] mix-blend-overlay"></div>
-      <div className="absolute w-[800px] h-[800px] bg-accent/40 rounded-full blur-3xl bottom-[-20%] right-[-10%] mix-blend-overlay"></div>
+    <div className="fixed inset-0 -z-10 bg-[#07080d] overflow-hidden pointer-events-none">
+      {/* Base44 Ambient Radial Lighting Mesh */}
+      <div className="absolute w-[900px] h-[700px] bg-indigo-500/10 rounded-full blur-[140px] top-[-25%] left-[20%]"></div>
+      <div className="absolute w-[700px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[160px] bottom-[-20%] right-[-10%]"></div>
+      <div className="absolute w-[600px] h-[500px] bg-sky-500/[0.04] rounded-full blur-[140px] top-[40%] left-[-15%]"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.08)_0%,transparent_60%)]"></div>
       
-      {/* 3D Blobs */}
-      <div className="absolute top-[20%] left-[15%] w-64 h-64 bg-white/40 backdrop-blur-3xl shadow-2xl animate-pulse mix-blend-overlay" style={{ borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%', animationDuration: '8s' }}></div>
-      <div className="absolute bottom-[20%] right-[15%] w-80 h-80 bg-accent/80 backdrop-blur-3xl shadow-2xl mix-blend-screen animate-pulse" style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%', animationDuration: '12s' }}></div>
-      
-      {/* User customizable pattern overlay */}
-      <div className={`absolute inset-0 pointer-events-none ${bgClass} opacity-10 mix-blend-overlay`}></div>
+      {/* Subtle Technical Grid Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
     </div>
   );
 };

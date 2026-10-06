@@ -399,66 +399,70 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       </AlertDialog>
 
       {/* Header */}
-      <div
-        className="flex items-center gap-3 p-4 border-b border-white/10 bg-transparent"
-      >
+      <div className="flex items-center gap-3.5 p-4 border-b border-white/[0.08] bg-white/[0.02] backdrop-blur-2xl">
         {onBack && (
-          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onBack(); }} className="md:hidden shrink-0">
-            <ArrowLeft className="w-5 h-5" />
+          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onBack(); }} className="md:hidden shrink-0 h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06]">
+            <ArrowLeft className="w-4 h-4" />
           </Button>
         )}
-        <div className="flex items-center gap-3 flex-1 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setShowGroupSettings(true)}>
-          <Avatar className="h-10 w-10 shrink-0">
-            {convMeta.logo_url ? (
-              <AvatarImage src={convMeta.logo_url} alt={headerTitle} className="object-cover" />
-            ) : null}
-            <AvatarFallback className="bg-primary/10 text-primary">
-              {isGroup ? <Users className="w-5 h-5" /> : headerTitle[0]?.toUpperCase() || "?"}
-            </AvatarFallback>
-          </Avatar>
+        <div className="flex items-center gap-3 flex-1 cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setShowGroupSettings(true)}>
+          <div className="relative shrink-0">
+            <Avatar className="h-10 w-10 rounded-xl border border-white/10 p-0.5 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20">
+              {convMeta.logo_url ? (
+                <AvatarImage src={convMeta.logo_url} alt={headerTitle} className="object-cover rounded-[10px]" />
+              ) : null}
+              <AvatarFallback className="bg-transparent text-indigo-300 font-bold font-mono text-xs">
+                {isGroup ? <Users className="w-5 h-5" /> : headerTitle[0]?.toUpperCase() || "?"}
+              </AvatarFallback>
+            </Avatar>
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] border-2 border-[#090a10]" />
+          </div>
           <div className="flex-1 overflow-hidden">
-            <h2 className="font-bold font-heading truncate flex items-center gap-1.5">
+            <h2 className="font-bold font-heading text-sm text-white truncate flex items-center gap-2">
               {headerTitle}
-              {convMeta.is_private && <Lock className="w-3.5 h-3.5 text-muted-foreground" />}
+              {convMeta.is_private && <Lock className="w-3.5 h-3.5 text-white/40" />}
             </h2>
-            <p className="text-xs text-muted-foreground truncate">
-              {isGroup ? `${memberCount} members` : "Private Message"}
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {isGroup ? `${memberCount} members` : "Online"}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }}>
-            <Search className="w-4 h-4 text-muted-foreground" />
+        <div className="flex items-center gap-1.5">
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }}>
+            <Search className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={() => setShowGroupSettings(true)}>
-            <Settings className="w-4 h-4 text-muted-foreground" />
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => setShowGroupSettings(true)}>
+            <Settings className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Search Bar */}
       {showSearch && (
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-white/10 bg-card/30 backdrop-blur-md animate-in slide-in-from-top-2">
-          <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-white/[0.08] bg-[#0c0d14]/90 backdrop-blur-xl animate-in slide-in-from-top-2">
+          <Search className="w-4 h-4 text-white/40 shrink-0" />
           <Input
             ref={searchInputRef}
             placeholder="Search in conversation..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 bg-transparent border-0 focus-visible:ring-0 text-sm"
+            className="h-8 bg-transparent border-0 focus-visible:ring-0 text-xs text-white placeholder:text-white/40"
           />
-          <span className="text-xs text-muted-foreground shrink-0">
+          <span className="text-[11px] font-mono text-white/40 shrink-0">
             {searchQuery ? `${filteredMessages.length} found` : ""}
           </span>
-          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => { setShowSearch(false); setSearchQuery(""); }}>
+          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-white/40 hover:text-white shrink-0" onClick={() => { setShowSearch(false); setSearchQuery(""); }}>
             <X className="w-3.5 h-3.5" />
           </Button>
         </div>
       )}
 
       {/* Messages */}
-      <div ref={scrollAreaRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div ref={scrollAreaRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-3">
         {displayMessages.map((msg, i) => {
           const isMe = msg.sender_id === user?.id;
           const showAvatar = !isMe && (i === displayMessages.length - 1 || displayMessages[i + 1]?.sender_id !== msg.sender_id);
@@ -472,8 +476,8 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           if (msg.deleted_for_everyone) {
             return (
               <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                <div className="italic text-muted-foreground text-xs px-4 py-2 rounded-2xl bg-card/30 border border-white/5">
-                  🚫 This message was deleted
+                <div className="italic text-white/40 text-xs px-3.5 py-1.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] font-mono">
+                  🚫 Message deleted
                 </div>
               </div>
             );
@@ -483,27 +487,31 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             <div key={msg.id}>
               {showDateSep && (
                 <div className="flex items-center justify-center my-4">
-                  <div className="bg-card/60 backdrop-blur-md border border-white/10 text-muted-foreground text-[10px] font-medium px-3 py-1 rounded-full uppercase tracking-wider">
+                  <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] text-white/60 text-[10px] font-mono font-medium px-3.5 py-1 rounded-full uppercase tracking-widest shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
                     {formatDateSeparator(msg.created_at)}
                   </div>
                 </div>
               )}
-              <div className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''} group`}>
+              <div className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : ''} group`}>
                 {!isMe && (
                   <div className="w-8 shrink-0 flex items-end">
                     {showAvatar && (
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="bg-secondary text-xs">{senderName[0]?.toUpperCase()}</AvatarFallback>
+                      <Avatar className="w-8 h-8 rounded-xl border border-white/10 p-0.5 bg-gradient-to-tr from-white/[0.05] to-white/[0.1]">
+                        <AvatarFallback className="bg-transparent text-indigo-300 text-[11px] font-bold font-mono">
+                          {senderName[0]?.toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
                     )}
                   </div>
                 )}
 
                 <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
-                  {!isMe && showAvatar && isGroup && <span className="text-[10px] text-muted-foreground mb-1 ml-1">{senderName}</span>}
+                  {!isMe && showAvatar && isGroup && <span className="text-[10px] font-mono text-white/50 mb-1 ml-1">{senderName}</span>}
 
-                  <div className={`relative rounded-2xl px-4 py-2.5 shadow-sm ${
-                    isMe ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-card/60 backdrop-blur-md border border-white/10 rounded-bl-sm text-foreground'
+                  <div className={`relative px-4 py-2.5 transition-all ${
+                    isMe 
+                      ? 'bg-gradient-to-br from-indigo-600 via-indigo-600 to-indigo-700 text-white border border-indigo-400/25 shadow-[0_4px_24px_rgba(99,102,241,0.25)] rounded-2xl rounded-br-sm' 
+                      : 'bg-white/[0.04] hover:bg-white/[0.06] text-white/90 border border-white/[0.08] backdrop-blur-xl rounded-2xl rounded-bl-sm shadow-[0_4px_16px_rgba(0,0,0,0.25)]'
                   }`}>
                     {/* Reply preview */}
                     {msg.reply_to_id && (() => {
@@ -511,31 +519,31 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                       if (!repliedMsg) return null;
                       const repliedName = participantNames[repliedMsg.sender_id] || (repliedMsg.sender_id === user?.id ? "You" : "Unknown");
                       return (
-                        <div className={`text-[11px] mb-1.5 pl-2 border-l-2 ${isMe ? 'border-primary-foreground/40 text-primary-foreground/70' : 'border-primary/40 text-muted-foreground'} truncate max-w-[200px]`}>
-                          <span className="font-semibold">{repliedName}</span>
-                          <p className="truncate">{repliedMsg.content || "GIF"}</p>
+                        <div className={`text-[11px] mb-1.5 pl-2.5 border-l-2 rounded-sm ${isMe ? 'border-white/40 text-white/80' : 'border-indigo-400/60 text-white/60'} truncate max-w-[220px]`}>
+                          <span className="font-semibold text-white/90">{repliedName}</span>
+                          <p className="truncate text-[10px]">{repliedMsg.content || "GIF"}</p>
                         </div>
                       );
                     })()}
 
                     {msg.gif_url ? (
-                      <div className="rounded-lg overflow-hidden mt-1 max-w-[200px]">
+                      <div className="rounded-xl overflow-hidden mt-1 max-w-[240px] border border-white/10 shadow-lg">
                         <img src={msg.gif_url.replace('[GIF] ', '')} alt="GIF" className="w-full h-auto" loading="lazy" />
                       </div>
                     ) : (
-                      <p className="text-[15px] leading-relaxed break-words whitespace-pre-wrap">{renderMarkdown(msg.content)}</p>
+                      <div className="text-[14px] leading-relaxed break-words whitespace-pre-wrap">{renderMarkdown(msg.content)}</div>
                     )}
 
                     {/* Message actions (hover) */}
                     {!msg.id.startsWith("temp-") && (
-                      <div className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-card/80 backdrop-blur-sm rounded-full border border-white/10 p-0.5 shadow-lg`}>
-                        <button onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-primary/10 rounded-full" title="Reply">
+                      <div className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-[#0c0d14]/90 backdrop-blur-2xl rounded-full border border-white/10 p-0.5 shadow-2xl z-10`}>
+                        <button onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Reply">
                           <Reply className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => setForwardMsg(msg)} className="p-1.5 hover:bg-primary/10 rounded-full" title="Forward">
+                        <button onClick={() => setForwardMsg(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Forward">
                           <Forward className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => copyMessage(msg)} className="p-1.5 hover:bg-primary/10 rounded-full" title="Copy">
+                        <button onClick={() => copyMessage(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Copy">
                           <Copy className="w-3.5 h-3.5" />
                         </button>
                         {isMe && (
@@ -544,10 +552,10 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                               setEditingMsg(msg);
                               setNewMessage(msg.content);
                               messageInputRef.current?.focus();
-                            }} className="p-1.5 hover:bg-primary/10 rounded-full" title="Edit">
+                            }} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Edit">
                               <FilePenLine className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => setDeleteConfirm(msg)} className="p-1.5 hover:bg-destructive/10 text-destructive rounded-full" title="Delete">
+                            <button onClick={() => setDeleteConfirm(msg)} className="p-1.5 hover:bg-rose-500/20 text-rose-400 rounded-full transition-colors" title="Delete">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </>
@@ -556,18 +564,18 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                     )}
 
                     {/* Timestamp + status */}
-                    <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end text-primary-foreground/70' : 'justify-start text-muted-foreground'} text-[10px]`}>
+                    <div className={`flex items-center gap-1.5 mt-1 ${isMe ? 'justify-end text-white/70' : 'justify-start text-white/40'} text-[10px] font-mono`}>
                       <span>{format(new Date(msg.created_at), "HH:mm")}</span>
-                      {msg.edited && <span className="italic">edited</span>}
+                      {msg.edited && <span className="italic text-white/50">edited</span>}
                       {isMe && !msg.id.startsWith("temp-") && (
                         new Date(msg.created_at).getTime() <= maxReadTime ? (
-                          <CheckCheck className="w-3.5 h-3.5 text-blue-400" />
+                          <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
                         ) : (
-                          <Check className="w-3 h-3 opacity-70" />
+                          <Check className="w-3 h-3 opacity-60" />
                         )
                       )}
                       {msg.id.startsWith("temp-") && (
-                        <span className="opacity-50">sending…</span>
+                        <span className="opacity-40 font-mono">sending…</span>
                       )}
                     </div>
                   </div>
@@ -583,7 +591,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       {showScrollDown && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-24 right-6 bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:scale-105 transition-transform z-10 animate-in fade-in zoom-in-95"
+          className="absolute bottom-24 right-6 bg-indigo-600 text-white rounded-2xl w-10 h-10 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-indigo-400/30 hover:scale-105 transition-transform z-10 animate-in fade-in zoom-in-95"
         >
           <ArrowDown className="w-5 h-5" />
         </button>
@@ -591,20 +599,20 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
       {/* Reply / Edit banner */}
       {(replyTo || editingMsg) && (
-        <div className="px-4 py-2 bg-card/60 backdrop-blur-md border-t border-white/10 flex items-center gap-3 animate-in slide-in-from-bottom-2">
-          <div className="w-1 h-8 bg-primary rounded-full shrink-0" />
+        <div className="px-4 py-2 bg-[#0c0d14]/80 backdrop-blur-2xl border-t border-white/[0.08] flex items-center gap-3 animate-in slide-in-from-bottom-2">
+          <div className="w-1 h-8 bg-indigo-500 rounded-full shrink-0 shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-primary">
+            <p className="text-xs font-semibold text-indigo-400 font-mono">
               {editingMsg ? "Editing message" : `Replying to ${replyTo?.sender_id === user?.id ? "yourself" : (participantNames[replyTo?.sender_id || ""] || "Unknown")}`}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-white/60 truncate font-mono">
               {editingMsg?.content || replyTo?.content || "GIF"}
             </p>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 shrink-0"
+            className="h-7 w-7 rounded-lg text-white/40 hover:text-white shrink-0"
             onClick={() => { setReplyTo(null); setEditingMsg(null); setNewMessage(""); }}
           >
             <X className="w-4 h-4" />
@@ -612,24 +620,24 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         </div>
       )}
 
-      {/* Input */}
-      <div className="p-4 bg-transparent border-t border-white/10">
-        <form onSubmit={handleSend} className="flex gap-2 items-end">
+      {/* Input Dock */}
+      <div className="p-3.5 bg-white/[0.02] border-t border-white/[0.08] backdrop-blur-2xl">
+        <form onSubmit={handleSend} className="flex gap-2 items-center">
           <Popover>
             <PopoverTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                <Smile className="w-5 h-5 text-muted-foreground" />
+              <Button type="button" variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white/[0.08] text-white/60 hover:text-white shrink-0 border border-white/[0.06] transition-all">
+                <Smile className="w-4 h-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent side="top" align="start" className="p-0 border-none w-auto">
-              <EmojiPicker theme={resolvedTheme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT} onEmojiClick={(e) => setNewMessage((m) => m + e.emoji)} width={320} height={400} />
+            <PopoverContent side="top" align="start" className="p-0 border-none w-auto bg-transparent shadow-2xl">
+              <EmojiPicker theme={EmojiTheme.DARK} onEmojiClick={(e) => setNewMessage((m) => m + e.emoji)} width={320} height={400} />
             </PopoverContent>
           </Popover>
 
           <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
             <PopoverTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                <ImageIcon className="w-5 h-5 text-muted-foreground" />
+              <Button type="button" variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white/[0.08] text-white/60 hover:text-white shrink-0 border border-white/[0.06] transition-all">
+                <ImageIcon className="w-4 h-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent side="top" align="start" className="p-0 border-none bg-transparent shadow-none w-auto">
@@ -641,15 +649,19 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             ref={messageInputRef}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder={editingMsg ? "Edit your message..." : "Type a message..."}
-            className={`flex-1 rounded-2xl bg-black/20 dark:bg-black/40 text-white border-transparent backdrop-blur-md placeholder:text-white/50 focus-visible:bg-background focus-visible:border-primary/30 ${editingMsg ? 'ring-2 ring-primary/50' : ''}`}
+            placeholder={editingMsg ? "Edit your message..." : "Type a message or paste a link..."}
+            className={`flex-1 h-10 rounded-xl bg-black/40 text-white text-xs border border-white/[0.08] backdrop-blur-md placeholder:text-white/40 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
           />
 
           <Button
             type="submit"
             disabled={!newMessage.trim() || sending}
             size="icon"
-            className={`h-10 w-10 rounded-full shrink-0 shadow-sm transition-all ${editingMsg ? 'bg-green-600 hover:bg-green-700' : ''}`}
+            className={`h-10 w-10 rounded-xl shrink-0 shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all ${
+              editingMsg 
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
+                : 'bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white'
+            }`}
           >
             {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4 ml-0.5" />}
           </Button>
