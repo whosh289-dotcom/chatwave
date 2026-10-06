@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .wrangler
+.env*
+!.env.example
+credentials*
