@@ -279,23 +279,98 @@ app.post('/api/conversations/leave', async (c) => {
 
 app.get('/api/stickers', async (c) => {
   try {
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS stickers (
+        id TEXT PRIMARY KEY,
+        url TEXT NOT NULL,
+        artist_name TEXT,
+        user_id TEXT,
+        approved BOOLEAN DEFAULT TRUE
+      )
+    `).run();
+
     const userId = c.req.query('userId');
     const { results } = await c.env.DB.prepare(
-      "SELECT * FROM stickers WHERE (user_id IS NULL OR user_id = ?) AND approved = TRUE"
-    ).bind(userId).all();
-    return c.json(results, 200);
+      "SELECT * FROM stickers WHERE (user_id IS NULL OR user_id = ?) AND (approved = 1 OR approved = TRUE OR approved IS NULL)"
+    ).bind(userId || '').all();
+    return c.json(results || [], 200);
   } catch (e: any) {
-    return c.json({ error: e.message }, 500);
+    console.error('Stickers fetch error:', e);
+    return c.json([], 200);
   }
+});
+
+// Real-time public GIF search from free open public endpoints (Tenor public & Reddit, zero Giphy)
+app.get('/api/gifs/search', async (c) => {
+  const query = (c.req.query('q') || 'trending').trim();
+  try {
+    // 1. Fetch from Tenor public feed
+    const tenorEndpoint = query === 'trending'
+      ? 'https://g.tenor.com/v1/trending?limit=30&media_filter=minimal'
+      : `https://g.tenor.com/v1/search?q=${encodeURIComponent(query)}&limit=30&media_filter=minimal`;
+    const res = await fetch(tenorEndpoint);
+    if (res.ok) {
+      const data: any = await res.json();
+      const results = (data.results || []).map((item: any) => ({
+        id: item.id || crypto.randomUUID(),
+        url: item.media?.[0]?.gif?.url || item.media?.[0]?.tinygif?.url || item.url,
+        artist_name: item.content_description || query,
+      })).filter((g: any) => Boolean(g.url));
+
+      if (results.length > 0) {
+        return c.json(results, 200);
+      }
+    }
+  } catch (err) {
+    console.error('Tenor GIF search failed:', err);
+  }
+
+  try {
+    // 2. Fetch from Reddit r/gifs public JSON feed
+    const redditUrl = query === 'trending'
+      ? 'https://www.reddit.com/r/gifs/hot.json?limit=30'
+      : `https://www.reddit.com/r/gifs/search.json?q=${encodeURIComponent(query)}&restrict_sr=1&limit=30`;
+    const res = await fetch(redditUrl, { headers: { 'User-Agent': 'ChatWave/1.0' } });
+    if (res.ok) {
+      const data: any = await res.json();
+      const posts = data?.data?.children || [];
+      const gifs = posts
+        .map((p: any) => ({
+          id: p.data?.id || crypto.randomUUID(),
+          url: p.data?.url_overridden_by_dest || p.data?.url,
+          artist_name: p.data?.title || 'Reddit',
+        }))
+        .filter((g: any) => g.url && (g.url.endsWith('.gif') || g.url.includes('.gif')));
+
+      if (gifs.length > 0) {
+        return c.json(gifs, 200);
+      }
+    }
+  } catch (err) {
+    console.error('Reddit GIF search failed:', err);
+  }
+
+  return c.json([], 200);
 });
 
 app.post('/api/stickers', async (c) => {
   try {
     const { url, artistName, userId } = await c.req.json();
     if (!url || !userId) return c.json({ error: 'Missing fields' }, 400);
+
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS stickers (
+        id TEXT PRIMARY KEY,
+        url TEXT NOT NULL,
+        artist_name TEXT,
+        user_id TEXT,
+        approved BOOLEAN DEFAULT TRUE
+      )
+    `).run();
+
     const id = crypto.randomUUID();
     await c.env.DB.prepare(
-      "INSERT INTO stickers (id, url, artist_name, user_id) VALUES (?, ?, ?, ?)"
+      "INSERT INTO stickers (id, url, artist_name, user_id, approved) VALUES (?, ?, ?, ?, TRUE)"
     ).bind(id, url, artistName || 'Custom Sticker', userId).run();
     return c.json({ success: true, id }, 200);
   } catch (e: any) {
@@ -305,22 +380,20 @@ app.post('/api/stickers', async (c) => {
 
 // Boost endpoint to scrape GIFs from public sources and add as public stickers
 app.post('/api/boost', async (c) => {
-  // Fire-and-forget the scraping operation
   scrapeAndStoreGifs(c.env.DB).catch((err) => console.error('Boost scrape error:', err));
   return c.json({ message: 'Boost started, scraping GIFs…' }, 200);
 });
 
-// Using imported fetchAndStoreStickers implementation
-
-addEventListener('scheduled', async (event) => {
-  await fetchAndStoreStickers(env);
-});
 // Admin endpoints for pending stickers
 app.get('/api/admin/stickers/pending', async (c) => {
   const token = c.req.header('x-admin-token');
   if (token !== c.env.ADMIN_TOKEN) return c.json({ error: 'Unauthorized' }, 401);
-  const { results } = await c.env.DB.prepare(`SELECT * FROM stickers WHERE approved = FALSE`).all();
-  return c.json({ pending: results }, 200);
+  try {
+    const { results } = await c.env.DB.prepare(`SELECT * FROM stickers WHERE approved = FALSE`).all();
+    return c.json({ pending: results || [] }, 200);
+  } catch (e: any) {
+    return c.json({ pending: [] }, 200);
+  }
 });
 
 app.post('/api/admin/stickers/approve', async (c) => {
@@ -497,5 +570,12 @@ export default {
     }
     
     return response;
+  },
+  async scheduled(event: any, env: Bindings, ctx: ExecutionContext) {
+    try {
+      await fetchAndStoreStickers(env as any);
+    } catch (e) {
+      console.error('Scheduled sticker fetch failed:', e);
+    }
   }
 }

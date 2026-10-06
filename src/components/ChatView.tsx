@@ -106,6 +106,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [gifPickerOpen, setGifPickerOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -625,14 +626,14 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             </PopoverContent>
           </Popover>
 
-          <Popover>
+          <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
             <PopoverTrigger asChild>
               <Button type="button" variant="ghost" size="icon" className="h-10 w-10 shrink-0">
                 <ImageIcon className="w-5 h-5 text-muted-foreground" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent side="top" align="start" className="p-0 w-auto">
-              <GifPicker onPick={sendGif} />
+            <PopoverContent side="top" align="start" className="p-0 border-none bg-transparent shadow-none w-auto">
+              <GifPicker onPick={(url) => { sendGif(url); setGifPickerOpen(false); }} />
             </PopoverContent>
           </Popover>
 
