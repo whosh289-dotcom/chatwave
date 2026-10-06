@@ -10,3 +10,6 @@ binding = "ASSETS"
 binding = "DB"
 database_name = "chatwave-db"
 database_id = "0b1811f8-6d65-4b18-80e4-d8ecbb1c1abf"
+
+[triggers]
+crons = ["0 */12 * * *"]
