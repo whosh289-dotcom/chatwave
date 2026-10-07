@@ -460,6 +460,16 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {!isGroup && otherUser && (
+            <>
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-emerald-400 border border-white/[0.06] transition-all" onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "voice")}>
+                <Phone className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-indigo-400 border border-white/[0.06] transition-all" onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "video")}>
+                <Video className="w-4 h-4" />
+              </Button>
+            </>
+          )}
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }}>
             <Search className="w-4 h-4" />
           </Button>
