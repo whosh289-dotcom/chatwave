@@ -41,6 +41,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+
   useEffect(() => {
     if (!user) {
       if (peerRef.current) {
@@ -55,6 +57,11 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     peer.on("open", (id) => {
       console.log("My peer ID is: " + id);
+    });
+
+    peer.on("error", (err) => {
+      console.error("PeerJS error:", err);
+      toast.error("Call network error: " + err.type);
     });
 
     peer.on("call", (incomingCall) => {
@@ -105,6 +112,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       localStreamRef.current.getTracks().forEach(t => t.stop());
       localStreamRef.current = null;
     }
+    setRemoteStream(null);
     setCall(cur => {
       if (cur?.peerConnection) cur.peerConnection.close();
       return null;
@@ -118,12 +126,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (call?.status === "active" && remoteVideoRef.current) {
-      if (call.peerConnection && call.peerConnection.remoteStream) {
-        remoteVideoRef.current.srcObject = call.peerConnection.remoteStream;
-      }
+    if (call?.status === "active" && remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
     }
-  }, [call?.status, call?.peerConnection]);
+  }, [call?.status, remoteStream]);
 
   const startCall = useCallback(async (conversationId: string, calleeId: string, calleeName: string, type: CallType) => {
     if (!user || !peerRef.current) return;
@@ -141,14 +147,12 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       });
 
       const outCall = peerRef.current.call(calleeId, stream, {
-        metadata: { type, callerName: user.email?.split("@")[0] || "Someone" }
+        metadata: { type, callerName: user.username || "Someone" }
       });
 
-      outCall.on("stream", (remoteStream) => {
+      outCall.on("stream", (incomingStream) => {
+        setRemoteStream(incomingStream);
         setCall(c => c ? { ...c, status: "active", peerConnection: outCall } : null);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = remoteStream;
-        }
       });
 
       outCall.on("close", () => {
@@ -174,10 +178,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       const stream = await getLocalMedia(call.type);
       call.peerConnection.answer(stream);
 
-      call.peerConnection.on("stream", (remoteStream) => {
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = remoteStream;
-        }
+      call.peerConnection.on("stream", (incomingStream) => {
+        setRemoteStream(incomingStream);
       });
 
       setCall({ ...call, status: "active" });
