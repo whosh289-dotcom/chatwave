@@ -96,10 +96,24 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   }, [user, call]); // Need to watch call state to reject busy
 
   const getLocalMedia = async (type: CallType) => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: type === "video",
-      audio: true,
-    });
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: type === "video",
+        audio: true,
+      });
+    } catch (e: any) {
+      if (type === "video" && (e.name === "NotFoundError" || e.name === "NotReadableError" || e.name === "OverconstrainedError")) {
+        toast("No camera found, falling back to voice only.");
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: false,
+          audio: true,
+        });
+      } else {
+        throw e;
+      }
+    }
+    
     localStreamRef.current = stream;
     if (localVideoRef.current && type === "video") {
       localVideoRef.current.srcObject = stream;
