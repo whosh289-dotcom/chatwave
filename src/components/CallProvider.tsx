@@ -167,7 +167,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       setCall(c => c ? { ...c, peerConnection: outCall } : null);
 
     } catch (e: any) {
-      toast.error("Couldn't access mic/camera");
+      console.error("Media error:", e);
+      toast.error(`Media access failed: ${e.name || e.message || "Unknown error"}`);
       cleanup();
     }
   }, [user, call]);
@@ -184,7 +185,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
       setCall({ ...call, status: "active" });
     } catch (e: any) {
-      toast.error("Couldn't access mic/camera");
+      console.error("Media error (accept):", e);
+      toast.error(`Media access failed: ${e.name || e.message || "Unknown error"}`);
       endCall("declined");
     }
   }, [call]);
