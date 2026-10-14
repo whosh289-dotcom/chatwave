@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Send, ArrowLeft, FilePenLine, Lock, Settings, Smile, ImageIcon,
@@ -112,7 +113,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const messageInputRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const fetchMetadata = async () => {
     if (!user) return;
@@ -194,8 +195,8 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const maxReadTime = readTimes.length > 0 ? Math.min(...readTimes) : 0;
 
   // ── Send message ──
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSend = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!newMessage.trim() || !user) return;
 
     // Handle edit mode
@@ -204,7 +205,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         const res = await fetch(`/api/messages/${editingMsg.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: newMessage.trim() })
+          body: JSON.stringify({ content: newMessage.replace(/^\n+|\n+$/g, '') })
         });
         if (res.ok) {
           toast.success("Message edited");
@@ -220,7 +221,8 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       return;
     }
 
-    let content = newMessage.trim();
+    // Strip only leading and trailing empty newlines, preserving indentation and spaces
+    let content = newMessage.replace(/^\n+|\n+$/g, '');
 
     // Slash commands
     if (content === "/party") {
@@ -235,6 +237,9 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
     }
 
     setNewMessage("");
+    if (messageInputRef.current) {
+      messageInputRef.current.style.height = 'auto';
+    }
     setReplyTo(null);
 
     // Optimistic UI
@@ -683,12 +688,29 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             </PopoverContent>
           </Popover>
 
-          <Input
+          <Textarea
             ref={messageInputRef}
+            rows={1}
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder={editingMsg ? "Edit your message..." : "Type a message or paste a link..."}
-            className={`flex-1 h-10 rounded-xl bg-black/40 text-white text-xs border border-white/[0.08] backdrop-blur-md placeholder:text-white/40 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              // auto resize
+              e.target.style.height = 'auto';
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (newMessage.trim() && !sending) {
+                  handleSend();
+                  if (messageInputRef.current) {
+                    messageInputRef.current.style.height = 'auto';
+                  }
+                }
+              }
+            }}
+            placeholder={editingMsg ? "Edit your message..." : "Type a message (Shift+Enter for newline)..."}
+            className={`flex-1 min-h-[40px] max-h-[160px] py-2.5 px-3 rounded-xl bg-black/40 text-white text-xs border border-white/[0.08] backdrop-blur-md placeholder:text-white/40 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 resize-none font-mono ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
           />
 
           <Button
