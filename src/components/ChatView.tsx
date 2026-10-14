@@ -52,17 +52,22 @@ interface ChatViewProps {
 const QUICK_REACTIONS = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
 
 const renderMarkdown = (text: string) => {
-  // Handle code blocks
+  // If user wrapped in triple backticks
   if (text.includes('```')) {
     const parts = text.split(/(```[\s\S]*?```)/g);
     return parts.map((part, i) => {
       if (part.startsWith('```') && part.endsWith('```')) {
         const code = part.slice(3, -3).replace(/^\w+\n/, '');
-        return <pre key={i} className="bg-black/20 rounded-lg p-2 my-1 text-xs font-mono overflow-x-auto">{code}</pre>;
+        return (
+          <pre key={i} className="bg-black/40 rounded-lg p-3 my-2 text-xs font-mono overflow-x-auto whitespace-pre border border-white/10 text-emerald-300">
+            <code>{code}</code>
+          </pre>
+        );
       }
-      return <span key={i}>{renderInlineMarkdown(part)}</span>;
+      return <span key={i} className="whitespace-pre-wrap">{renderInlineMarkdown(part)}</span>;
     });
   }
+
   return renderInlineMarkdown(text);
 };
 
