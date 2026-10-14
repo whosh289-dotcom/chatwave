@@ -51,6 +51,28 @@ interface ChatViewProps {
 
 const QUICK_REACTIONS = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
 
+const CopyCodeButton = ({ code }: { code: string }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    toast.success("Code copied with original formatting!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      type="button"
+      className="absolute top-2 right-2 px-2 py-1 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white rounded-md text-[10px] font-mono flex items-center gap-1 transition-all backdrop-blur-md border border-white/10 shadow-sm"
+      title="Copy raw code with indentation"
+    >
+      {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+      <span>{copied ? "Copied" : "Copy"}</span>
+    </button>
+  );
+};
+
 const renderMarkdown = (text: string) => {
   // If user wrapped in triple backticks
   if (text.includes('```')) {
@@ -59,9 +81,12 @@ const renderMarkdown = (text: string) => {
       if (part.startsWith('```') && part.endsWith('```')) {
         const code = part.slice(3, -3).replace(/^\w+\n/, '');
         return (
-          <pre key={i} className="bg-black/40 rounded-lg p-3 my-2 text-xs font-mono overflow-x-auto whitespace-pre border border-white/10 text-emerald-300">
-            <code>{code}</code>
-          </pre>
+          <div key={i} className="relative group/code my-2">
+            <pre className="bg-black/50 rounded-xl p-3 text-xs font-mono overflow-x-auto whitespace-pre border border-white/10 text-emerald-300 shadow-inner">
+              <code>{code}</code>
+            </pre>
+            <CopyCodeButton code={code} />
+          </div>
         );
       }
       return <span key={i} className="whitespace-pre-wrap">{renderInlineMarkdown(part)}</span>;
@@ -349,7 +374,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   // ── Copy message ──
   const copyMessage = (msg: Message) => {
     navigator.clipboard.writeText(msg.content);
-    toast.success("Copied to clipboard");
+    toast.success("Message copied with original indentation!");
   };
 
   // ── Search filter ──
