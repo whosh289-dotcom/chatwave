@@ -190,3 +190,32 @@
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.4); }
+
+/* Chat Wallpaper Patterns (WhatsApp Doodles, Dots, Grid, Geometry) */
+.chat-bg-doodle {
+  background-color: #08090f;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22360%22%20height%3D%22360%22%20viewBox%3D%220%200%20360%20360%22%20fill%3D%22none%22%20stroke%3D%22rgba(255%2C255%2C255%2C0.035)%22%20stroke-width%3D%221.3%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%3Cg%20transform%3D%22translate(24%2C%2028)%22%3E%3Cpath%20d%3D%22M0%206h22v12a7%207%200%200%201-7%207H7a7%207%200%200%201-7-7V6z%22%2F%3E%3Cpath%20d%3D%22M22%209h4a3%203%200%200%201%200%206h-4%22%2F%3E%3Cpath%20d%3D%22M5%202c0-1%202-2%202-2s2%201%202%202%22%2F%3E%3Cpath%20d%3D%22M12%202c0-1%202-2%202-2s2%201%202%202%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(140%2C%2020)%22%3E%3Cpath%20d%3D%22M4%204h26a4%204%200%200%201%204%204v14a4%204%200%200%201-4%204h-16l-7%206v-6H4a4%204%200%200%201-4-4V8a4%204%200%200%201%204-4z%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2215%22%20r%3D%221.5%22%20fill%3D%22rgba(255%2C255%2C255%2C0.035)%22%2F%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2215%22%20r%3D%221.5%22%20fill%3D%22rgba(255%2C255%2C255%2C0.035)%22%2F%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2215%22%20r%3D%221.5%22%20fill%3D%22rgba(255%2C255%2C255%2C0.035)%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(260%2C%2032)%22%3E%3Cpath%20d%3D%22M0%2012l26-12-10%2026-5-9-11-5z%22%2F%3E%3Cpath%20d%3D%22M11%2015l15-15%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(30%2C%20130)%22%3E%3Cpath%20d%3D%22M3%2016a13%2013%200%200%201%2026%200%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2214%22%20width%3D%226%22%20height%3D%2210%22%20rx%3D%223%22%2F%3E%3Crect%20x%3D%2226%22%20y%3D%2214%22%20width%3D%226%22%20height%3D%2210%22%20rx%3D%223%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(160%2C%20120)%22%3E%3Cpath%20d%3D%22M10%200l3%207%207%203-7%203-3%207-3-7-7-3%207-3z%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(240%2C%20120)%22%3E%3Crect%20x%3D%220%22%20y%3D%224%22%20width%3D%2228%22%20height%3D%2216%22%20rx%3D%228%22%2F%3E%3Cpath%20d%3D%22M6%2012h4m-2-2v4%22%2F%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2210%22%20r%3D%221%22%20fill%3D%22rgba(255%2C255%2C255%2C0.035)%22%2F%3E%3Ccircle%20cx%3D%2223%22%20cy%3D%2213%22%20r%3D%221%22%20fill%3D%22rgba(255%2C255%2C255%2C0.035)%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(26%2C%20230)%22%3E%3Cpath%20d%3D%22M4%206h4l2-3h8l2%203h4a3%203%200%200%201%203%203v12a3%203%200%200%201-3%203H4a3%203%200%200%201-3-3V9a3%203%200%200%201%203-3z%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2214%22%20r%3D%224%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(130%2C%20220)%22%3E%3Cpath%20d%3D%22M9%2018V5l12-3v13%22%2F%3E%3Ccircle%20cx%3D%226%22%20cy%3D%2218%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2215%22%20r%3D%223%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(230%2C%20225)%22%3E%3Cpath%20d%3D%22M12%2021s-8-5.3-10-9.5A5.5%205.5%200%200%201%2010.5%204L12%205.5%2013.5%204A5.5%205.5%200%200%201%2022%2011.5C20%2015.7%2012%2021%2012%2021z%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(310%2C%20170)%22%3E%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%2214%22%20height%3D%2224%22%20rx%3D%223%22%2F%3E%3Cline%20x1%3D%225%22%20y1%3D%2220%22%20x2%3D%229%22%20y2%3D%2220%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(80%2C%20310)%22%3E%3Cpath%20d%3D%22M7%2016h6m-5%203h4m-7-9a6%206%200%201%201%2010%200c-1.5%201.5-2%203-2%205H7c0-2-.5-3.5-2-5z%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(190%2C%20305)%22%3E%3Ccircle%20cx%3D%2211%22%20cy%3D%2211%22%20r%3D%2210%22%2F%3E%3Cpolyline%20points%3D%2211%2C5%2011%2C11%2015%2C13%22%2F%3E%3C%2Fg%3E%0A%20%20%3Cg%20transform%3D%22translate(290%2C%20290)%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%228%22%20cy%3D%2210%22%20r%3D%221.5%22%20fill%3D%22rgba(255%2C255%2C255%2C0.035)%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2210%22%20r%3D%221.5%22%20fill%3D%22rgba(255%2C255%2C255%2C0.035)%22%2F%3E%3Cpath%20d%3D%22M8%2015a5%205%200%200%200%208%200%22%2F%3E%3C%2Fg%3E%0A%3C%2Fsvg%3E");
+  background-size: 360px 360px;
+}
+
+.chat-bg-dots {
+  background-color: #08090f;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.chat-bg-grid {
+  background-color: #08090f;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.chat-bg-lines {
+  background-color: #08090f;
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 1px, transparent 0, transparent 50%);
+  background-size: 20px 20px;
+}
+
+.chat-bg-none {
+  background-color: #08090f;
+}

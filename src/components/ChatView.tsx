@@ -139,6 +139,19 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [gifPickerOpen, setGifPickerOpen] = useState(false);
+  const [chatBg, setChatBg] = useState(() => localStorage.getItem("chat-bg") || "doodle");
+
+  useEffect(() => {
+    const handleBgChange = () => {
+      setChatBg(localStorage.getItem("chat-bg") || "doodle");
+    };
+    window.addEventListener("chat-bg-change", handleBgChange);
+    window.addEventListener("storage", handleBgChange);
+    return () => {
+      window.removeEventListener("chat-bg-change", handleBgChange);
+      window.removeEventListener("storage", handleBgChange);
+    };
+  }, []);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -534,8 +547,17 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         </div>
       )}
 
-      {/* Messages */}
-      <div ref={scrollAreaRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-3">
+      {/* Messages Stream Container with WhatsApp / Custom Doodle Wallpaper */}
+      <div 
+        ref={scrollAreaRef} 
+        onScroll={handleScroll} 
+        className={`flex-1 overflow-y-auto p-4 space-y-3 transition-colors duration-300 ${
+          chatBg === "doodle" ? "chat-bg-doodle" :
+          chatBg === "dots" ? "chat-bg-dots" :
+          chatBg === "grid" ? "chat-bg-grid" :
+          chatBg === "lines" ? "chat-bg-lines" : "chat-bg-none"
+        }`}
+      >
         {displayMessages.map((msg, i) => {
           const isMe = msg.sender_id === user?.id;
           const showAvatar = !isMe && (i === displayMessages.length - 1 || displayMessages[i + 1]?.sender_id !== msg.sender_id);

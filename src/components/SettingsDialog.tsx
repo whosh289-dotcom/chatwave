@@ -12,14 +12,15 @@ interface SettingsDialogProps {
 }
 
 const BACKGROUNDS = [
-  { id: "dots", name: "Dots (Default)", class: "chat-bg-dots" },
+  { id: "doodle", name: "WhatsApp Doodle (Default)", class: "chat-bg-doodle" },
+  { id: "dots", name: "Subtle Dots", class: "chat-bg-dots" },
   { id: "grid", name: "Modern Grid", class: "chat-bg-grid" },
   { id: "lines", name: "Diagonal Lines", class: "chat-bg-lines" },
-  { id: "none", name: "Solid Color", class: "chat-bg-none" }
+  { id: "none", name: "Deep Solid", class: "chat-bg-none" }
 ];
 
 export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
-    const [activeBg, setActiveBg] = useState(() => localStorage.getItem("chat-bg") || "dots");
+  const [activeBg, setActiveBg] = useState(() => localStorage.getItem("chat-bg") || "doodle");
   const { user } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);

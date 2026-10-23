@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { PhoneOff, Video, Phone, MicOff, Mic, VideoOff } from "lucide-react";
+import { PhoneOff, Video, Phone, MicOff, Mic, VideoOff, Maximize2, Shield, Volume2 } from "lucide-react";
 import Peer, { MediaConnection } from "peerjs";
 
 type CallType = "video" | "voice";
@@ -42,6 +42,24 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [callDuration, setCallDuration] = useState(0);
+
+  useEffect(() => {
+    let timer: any;
+    if (call?.status === "active") {
+      setCallDuration(0);
+      timer = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [call?.status]);
+
+  const formatCallDuration = (sec: number) => {
+    const mins = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${mins.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
   useEffect(() => {
     if (!user) {
@@ -224,24 +242,28 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       {children}
 
       {call?.status === "ringing-incoming" && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-card rounded-2xl p-8 max-w-sm w-full text-center space-y-6 border border-border shadow-2xl">
-            <Avatar className="h-24 w-24 mx-auto">
-              <AvatarFallback className="bg-primary/20 text-primary text-2xl">
-                {call.peerName.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+        <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in duration-200">
+          <div className="bg-[#0e111a]/95 rounded-3xl p-8 max-w-sm w-full text-center space-y-6 border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.1)]">
+            <div className="relative w-24 h-24 mx-auto">
+              <span className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping"></span>
+              <Avatar className="h-24 w-24 rounded-full border-2 border-emerald-500/40 shadow-xl">
+                <AvatarFallback className="bg-gradient-to-tr from-emerald-600 to-teal-500 text-white text-2xl font-heading font-bold">
+                  {call.peerName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
             <div>
-              <p className="text-lg font-semibold">{call.peerName}</p>
-              <p className="text-sm text-muted-foreground">
-                Incoming {call.type === "video" ? "video" : "voice"} call…
+              <p className="text-xl font-heading font-bold text-white tracking-tight">{call.peerName}</p>
+              <p className="text-xs text-white/50 flex items-center justify-center gap-1.5 mt-1 font-medium">
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                Incoming encrypted {call.type === "video" ? "video" : "voice"} call…
               </p>
             </div>
-            <div className="flex justify-center gap-6">
-              <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full" onClick={() => endCall("declined")}>
+            <div className="flex justify-center gap-6 pt-2">
+              <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full shadow-lg hover:scale-105 transition-transform" onClick={() => endCall("declined")}>
                 <PhoneOff className="w-6 h-6" />
               </Button>
-              <Button size="icon" className="h-14 w-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white" onClick={acceptCall}>
+              <Button size="icon" className="h-14 w-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:scale-105 transition-transform" onClick={acceptCall}>
                 {call.type === "video" ? <Video className="w-6 h-6" /> : <Phone className="w-6 h-6" />}
               </Button>
             </div>
@@ -250,54 +272,108 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       )}
 
       {call?.status === "ringing-outgoing" && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-6 text-white">
-          <Avatar className="h-28 w-28 mb-6">
-            <AvatarFallback className="bg-primary/30 text-primary-foreground text-3xl">
-              {call.peerName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <p className="text-2xl font-semibold">{call.peerName}</p>
-          <p className="text-sm text-white/60 mt-1 animate-pulse">Ringing…</p>
-          <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full mt-10" onClick={() => endCall("ended")}>
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white animate-in fade-in duration-200">
+          <div className="relative w-28 h-28 mb-6">
+            <span className="absolute inset-0 rounded-full bg-indigo-500/20 animate-ping"></span>
+            <Avatar className="h-28 w-28 rounded-full border-2 border-indigo-500/40 shadow-2xl">
+              <AvatarFallback className="bg-gradient-to-tr from-indigo-600 to-purple-600 text-white text-3xl font-heading font-bold">
+                {call.peerName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <p className="text-2xl font-heading font-bold tracking-tight">{call.peerName}</p>
+          <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
+            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+            <p className="text-xs text-white/60 font-medium">Connecting end-to-end…</p>
+          </div>
+          <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full mt-12 shadow-xl hover:scale-105 transition-transform" onClick={() => endCall("ended")}>
             <PhoneOff className="w-6 h-6" />
           </Button>
         </div>
       )}
 
       {call?.status === "active" && (
-        <div className="fixed inset-0 z-[100] bg-black flex flex-col">
-          <div className="flex-1 relative bg-black flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] bg-[#08090f] flex flex-col text-white animate-in zoom-in-95 duration-200">
+          {/* Call Header Status Bar */}
+          <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 rounded-xl border border-white/10">
+                <AvatarFallback className="bg-indigo-600/30 text-white font-bold font-heading text-sm">
+                  {call.peerName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-heading font-semibold text-sm leading-tight">{call.peerName}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span className="text-[11px] font-mono text-emerald-400">{formatCallDuration(callDuration)}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 backdrop-blur-md">
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[11px] font-mono text-white/70">Encrypted P2P</span>
+            </div>
+          </div>
+
+          <div className="flex-1 relative bg-[#090b12] flex items-center justify-center overflow-hidden">
             {call.type === "video" ? (
               <>
                 <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                <video ref={localVideoRef} autoPlay playsInline muted className="absolute top-4 right-4 w-32 h-44 object-cover rounded-lg border-2 border-white/40 shadow-lg" />
+                <div className="absolute top-20 right-6 w-36 h-52 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl bg-black/60 backdrop-blur-md">
+                  <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                  <div className="absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-md bg-black/60 text-white/80">You</div>
+                </div>
               </>
             ) : (
               <>
                 <audio ref={remoteVideoRef as any} autoPlay />
-                <div className="text-center text-white">
-                  <Avatar className="h-32 w-32 mx-auto mb-4">
-                    <AvatarFallback className="bg-primary/30 text-primary-foreground text-4xl">
-                      {call.peerName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <p className="text-2xl font-semibold">{call.peerName}</p>
-                  <p className="text-sm text-white/60 mt-1">In call…</p>
+                <div className="text-center">
+                  <div className="relative w-36 h-36 mx-auto mb-6">
+                    <span className="absolute inset-0 rounded-full bg-emerald-500/10 animate-pulse"></span>
+                    <Avatar className="h-36 w-36 rounded-full border-4 border-white/10 shadow-2xl">
+                      <AvatarFallback className="bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 text-white text-5xl font-heading font-bold">
+                        {call.peerName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <p className="text-3xl font-heading font-bold tracking-tight">{call.peerName}</p>
+                  <p className="text-sm font-mono text-emerald-400 mt-2">{formatCallDuration(callDuration)}</p>
                 </div>
               </>
             )}
           </div>
-          <div className="bg-black/80 backdrop-blur-md py-6 flex justify-center gap-4">
-            <Button size="icon" variant="secondary" className="h-12 w-12 rounded-full" onClick={toggleMute}>
+
+          {/* Floating Call Action Controls (WhatsApp / FaceTime style) */}
+          <div className="p-6 bg-gradient-to-t from-black via-black/90 to-transparent flex items-center justify-center gap-5">
+            <Button 
+              size="icon" 
+              variant="secondary" 
+              className={`h-13 w-13 rounded-full transition-all border ${muted ? "bg-rose-500/20 text-rose-400 border-rose-500/40" : "bg-white/10 hover:bg-white/20 text-white border-white/15"}`} 
+              onClick={toggleMute}
+              title={muted ? "Unmute" : "Mute"}
+            >
               {muted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </Button>
             {call.type === "video" && (
-              <Button size="icon" variant="secondary" className="h-12 w-12 rounded-full" onClick={toggleCamera}>
+              <Button 
+                size="icon" 
+                variant="secondary" 
+                className={`h-13 w-13 rounded-full transition-all border ${cameraOff ? "bg-rose-500/20 text-rose-400 border-rose-500/40" : "bg-white/10 hover:bg-white/20 text-white border-white/15"}`} 
+                onClick={toggleCamera}
+                title={cameraOff ? "Turn Video On" : "Turn Video Off"}
+              >
                 {cameraOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
               </Button>
             )}
-            <Button size="icon" variant="destructive" className="h-12 w-12 rounded-full" onClick={() => endCall("ended")}>
-              <PhoneOff className="w-5 h-5" />
+            <Button 
+              size="icon" 
+              variant="destructive" 
+              className="h-14 w-14 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-[0_0_25px_rgba(244,63,94,0.4)] hover:scale-105 transition-transform" 
+              onClick={() => endCall("ended")}
+              title="End Call"
+            >
+              <PhoneOff className="w-6 h-6" />
             </Button>
           </div>
         </div>
