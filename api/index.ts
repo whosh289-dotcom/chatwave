@@ -200,6 +200,61 @@ app.post('/api/users/block', async (c) => {
   }
 });
 
+app.post('/api/users/unblock', async (c) => {
+  const { blockerId, blockedId } = await c.req.json();
+  if (!blockerId || !blockedId) return c.json({ error: 'Missing ids' }, 400);
+
+  try {
+    await c.env.DB.prepare(
+      "DELETE FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?"
+    ).bind(blockerId, blockedId).run();
+    return c.json({ success: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+app.get('/api/users/blocked', async (c) => {
+  const userId = c.req.query('userId');
+  if (!userId) return c.json({ error: 'Missing userId' }, 400);
+
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT b.id, b.blocked_id, u.username as display_name, u.avatar_url, b.created_at
+      FROM blocked_users b
+      JOIN users u ON b.blocked_id = u.id
+      WHERE b.blocker_id = ?
+      ORDER BY b.created_at DESC
+    `).bind(userId).all();
+    return c.json({ blockedUsers: results || [] }, 200);
+  } catch (e: any) {
+    return c.json({ error: e.message, blockedUsers: [] }, 500);
+  }
+});
+
+app.get('/api/users/block-status', async (c) => {
+  const userId = c.req.query('userId');
+  const otherUserId = c.req.query('otherUserId');
+  if (!userId || !otherUserId) return c.json({ isBlockedByMe: false, isBlockedByThem: false }, 200);
+
+  try {
+    const { results: byMe } = await c.env.DB.prepare(
+      "SELECT id FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?"
+    ).bind(userId, otherUserId).all();
+
+    const { results: byThem } = await c.env.DB.prepare(
+      "SELECT id FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?"
+    ).bind(otherUserId, userId).all();
+
+    return c.json({
+      isBlockedByMe: byMe && byMe.length > 0,
+      isBlockedByThem: byThem && byThem.length > 0
+    }, 200);
+  } catch (e: any) {
+    return c.json({ isBlockedByMe: false, isBlockedByThem: false }, 200);
+  }
+});
+
 app.post('/api/conversations', async (c) => {
   const { isPrivate, groupName, selectedUserIds, ownerId } = await c.req.json();
   
@@ -528,6 +583,24 @@ app.post('/api/messages', async (c) => {
   const { conversationId, senderId, content, gifUrl } = await c.req.json();
   const id = crypto.randomUUID();
   try {
+    // Check if communication is blocked in a direct conversation
+    const { results: parts } = await c.env.DB.prepare(
+      "SELECT user_id FROM conversation_participants WHERE conversation_id = ?"
+    ).bind(conversationId).all();
+
+    if (parts && parts.length === 2) {
+      const otherPart = parts.find((p: any) => p.user_id !== senderId);
+      if (otherPart) {
+        const { results: blockCheck } = await c.env.DB.prepare(
+          "SELECT id, blocker_id FROM blocked_users WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)"
+        ).bind(otherPart.user_id, senderId, senderId, otherPart.user_id).all();
+
+        if (blockCheck && blockCheck.length > 0) {
+          return c.json({ error: "Cannot send message. Communication is blocked between these users." }, 403);
+        }
+      }
+    }
+
     await c.env.DB.prepare(
       "INSERT INTO messages (id, conversation_id, sender_id, content, gif_url) VALUES (?, ?, ?, ?, ?)"
     ).bind(id, conversationId, senderId, content, gifUrl || null).run();

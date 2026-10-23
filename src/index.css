@@ -97,6 +97,91 @@
     --sidebar-border: 230 18% 13%;
     --sidebar-ring: 239 84% 67%;
   }
+
+  .light {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 94%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 347 87% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 239 84% 67%;
+
+    --chat-sent: 239 84% 67%;
+    --chat-sent-foreground: 0 0% 100%;
+    --chat-received: 210 40% 94%;
+    --chat-received-foreground: 222 47% 11%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 94%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 239 84% 67%;
+  }
+
+  /* Color Theme Overrides */
+  [data-accent="emerald"] {
+    --primary: 160 84% 39%;
+    --ring: 160 84% 39%;
+    --chat-sent: 160 84% 34%;
+    --sidebar-primary: 160 84% 39%;
+  }
+
+  [data-accent="telegram"] {
+    --primary: 199 89% 48%;
+    --ring: 199 89% 48%;
+    --chat-sent: 199 89% 44%;
+    --sidebar-primary: 199 89% 48%;
+  }
+
+  [data-accent="rose"] {
+    --primary: 343 88% 60%;
+    --ring: 343 88% 60%;
+    --chat-sent: 343 88% 54%;
+    --sidebar-primary: 343 88% 60%;
+  }
+
+  [data-accent="solar"] {
+    --primary: 28 95% 54%;
+    --ring: 28 95% 54%;
+    --chat-sent: 28 95% 48%;
+    --sidebar-primary: 28 95% 54%;
+  }
+
+  [data-accent="oled"] {
+    --background: 0 0% 0%;
+    --card: 0 0% 3%;
+    --popover: 0 0% 3%;
+    --secondary: 0 0% 8%;
+    --muted: 0 0% 9%;
+    --border: 0 0% 12%;
+    --sidebar-background: 0 0% 1%;
+    --chat-sent: 240 5% 20%;
+    --chat-received: 0 0% 7%;
+  }
 }
 
 @layer base {

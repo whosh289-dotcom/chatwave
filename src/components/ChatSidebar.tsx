@@ -99,8 +99,7 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
       });
       if (!res.ok) throw new Error("Failed to block");
       toast.success("User reported and blocked successfully!");
-      // Optionally remove conversation from sidebar locally
-      setConversations(prev => prev.filter(c => !c.otherUsers.some(u => u.user_id === otherUserId)));
+      window.dispatchEvent(new CustomEvent("user-blocked", { detail: { userId: otherUserId } }));
     } catch (e) {
       toast.error("Failed to block user");
     }

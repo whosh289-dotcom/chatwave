@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import {
   Send, ArrowLeft, FilePenLine, Lock, Settings, Smile, ImageIcon,
   Reply, Trash2, X, MoreVertical, Check, CheckCheck, Forward,
-  Phone, Video, Bell, Search, ArrowDown, Copy, Pin, Users, Camera
+  Phone, Video, Bell, Search, ArrowDown, Copy, Pin, Users, Camera,
+  ShieldAlert, UserX, Loader2
 } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import GroupSettingsDialog from "@/components/GroupSettingsDialog";
@@ -417,6 +418,75 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
     return diffMs < 25000;
   }, [isGroup, otherUser?.last_seen_at]);
 
+  // Blocked status management for 1-on-1 chats
+  const [isBlockedByMe, setIsBlockedByMe] = useState(false);
+  const [isBlockedByThem, setIsBlockedByThem] = useState(false);
+  const [blockLoading, setBlockLoading] = useState(false);
+
+  const fetchBlockStatus = useCallback(async () => {
+    if (isGroup || !user || !otherUser?.user_id) return;
+    try {
+      const res = await fetch(`/api/users/block-status?userId=${user.id}&otherUserId=${otherUser.user_id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setIsBlockedByMe(Boolean(data.isBlockedByMe));
+        setIsBlockedByThem(Boolean(data.isBlockedByThem));
+      }
+    } catch (e) {
+      console.error("Failed to fetch block status", e);
+    }
+  }, [isGroup, user, otherUser?.user_id]);
+
+  useEffect(() => {
+    fetchBlockStatus();
+    const handleUnblock = () => fetchBlockStatus();
+    const handleBlock = () => fetchBlockStatus();
+    window.addEventListener("user-unblocked", handleUnblock);
+    window.addEventListener("user-blocked", handleBlock);
+    return () => {
+      window.removeEventListener("user-unblocked", handleUnblock);
+      window.removeEventListener("user-blocked", handleBlock);
+    };
+  }, [fetchBlockStatus]);
+
+  const handleToggleBlock = async () => {
+    if (!user || !otherUser) return;
+    setBlockLoading(true);
+    try {
+      if (isBlockedByMe) {
+        const res = await fetch("/api/users/unblock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ blockerId: user.id, blockedId: otherUser.user_id })
+        });
+        if (res.ok) {
+          setIsBlockedByMe(false);
+          toast.success(`Unblocked ${otherUser.display_name}`);
+          window.dispatchEvent(new CustomEvent("user-unblocked", { detail: { userId: otherUser.user_id } }));
+        } else {
+          toast.error("Failed to unblock user");
+        }
+      } else {
+        const res = await fetch("/api/users/block", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ blockerId: user.id, blockedId: otherUser.user_id })
+        });
+        if (res.ok) {
+          setIsBlockedByMe(true);
+          toast.success(`Blocked ${otherUser.display_name}`);
+          window.dispatchEvent(new CustomEvent("user-blocked", { detail: { userId: otherUser.user_id } }));
+        } else {
+          toast.error("Failed to block user");
+        }
+      }
+    } catch (e) {
+      toast.error("Action failed");
+    } finally {
+      setBlockLoading(false);
+    }
+  };
+
   // Date separators
   const getDateKey = (dateStr: string) => format(new Date(dateStr), "yyyy-MM-dd");
 
@@ -510,11 +580,43 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         <div className="flex items-center gap-1">
           {!isGroup && otherUser && (
             <>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-emerald-400 border border-white/[0.06] transition-all" onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "voice")} title="Voice Call">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-emerald-400 border border-white/[0.06] transition-all disabled:opacity-40"
+                onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "voice")}
+                title={isBlockedByMe || isBlockedByThem ? "Call unavailable (blocked)" : "Voice Call"}
+                disabled={isBlockedByMe || isBlockedByThem}
+              >
                 <Phone className="w-3.5 h-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-indigo-300 border border-white/[0.06] transition-all" onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "video")} title="Video Call">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-indigo-300 border border-white/[0.06] transition-all disabled:opacity-40"
+                onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "video")}
+                title={isBlockedByMe || isBlockedByThem ? "Call unavailable (blocked)" : "Video Call"}
+                disabled={isBlockedByMe || isBlockedByThem}
+              >
                 <Video className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 rounded-lg border transition-all ${
+                  isBlockedByMe
+                    ? "bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30"
+                    : "text-white/70 hover:text-rose-400 border-white/[0.06] hover:bg-white/[0.08]"
+                }`}
+                onClick={handleToggleBlock}
+                title={isBlockedByMe ? "Unblock contact" : "Block contact"}
+                disabled={blockLoading}
+              >
+                {blockLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                )}
               </Button>
             </>
           )}
@@ -715,70 +817,98 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         </div>
       )}
 
-      {/* Input Dock */}
-      <div className="p-3 bg-[#0b0d14]/90 border-t border-white/[0.08] backdrop-blur-2xl">
-        <form onSubmit={handleSend} className="flex gap-2 items-end">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
-                <Smile className="w-4 h-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent side="top" align="start" className="p-0 border-none w-auto bg-transparent shadow-2xl">
-              <EmojiPicker theme={EmojiTheme.DARK} onEmojiClick={(e) => setNewMessage((m) => m + e.emoji)} width={320} height={400} />
-            </PopoverContent>
-          </Popover>
+      {/* Input Dock or Blocked Notice */}
+      {isBlockedByMe ? (
+        <div className="p-4 bg-rose-500/10 border-t border-rose-500/20 backdrop-blur-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0" />
+            <span className="text-xs font-semibold text-rose-200">
+              You have blocked this contact. Unblock to resume messaging and calls.
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs border-rose-400/40 bg-rose-500/20 text-rose-200 hover:bg-rose-500/30 font-semibold rounded-lg shrink-0"
+            onClick={handleToggleBlock}
+            disabled={blockLoading}
+          >
+            {blockLoading && <Loader2 className="w-3 h-3 animate-spin mr-1.5" />}
+            Unblock Contact
+          </Button>
+        </div>
+      ) : isBlockedByThem ? (
+        <div className="p-4 bg-amber-500/10 border-t border-amber-500/20 backdrop-blur-2xl flex items-center justify-center gap-2 text-center">
+          <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+          <span className="text-xs font-semibold text-amber-200">
+            You cannot send messages or call this contact because communication has been restricted.
+          </span>
+        </div>
+      ) : (
+        <div className="p-3 bg-[#0b0d14]/90 border-t border-white/[0.08] backdrop-blur-2xl">
+          <form onSubmit={handleSend} className="flex gap-2 items-end">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
+                  <Smile className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent side="top" align="start" className="p-0 border-none w-auto bg-transparent shadow-2xl">
+                <EmojiPicker theme={EmojiTheme.DARK} onEmojiClick={(e) => setNewMessage((m) => m + e.emoji)} width={320} height={400} />
+              </PopoverContent>
+            </Popover>
 
-          <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
-            <PopoverTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
-                <ImageIcon className="w-4 h-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent side="top" align="start" className="p-0 border-none bg-transparent shadow-none w-auto">
-              <GifPicker onPick={(url) => { sendGif(url); setGifPickerOpen(false); }} />
-            </PopoverContent>
-          </Popover>
+            <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
+                  <ImageIcon className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent side="top" align="start" className="p-0 border-none bg-transparent shadow-none w-auto">
+                <GifPicker onPick={(url) => { sendGif(url); setGifPickerOpen(false); }} />
+              </PopoverContent>
+            </Popover>
 
-          <Textarea
-            ref={messageInputRef}
-            rows={1}
-            value={newMessage}
-            onChange={(e) => {
-              setNewMessage(e.target.value);
-              // auto resize
-              e.target.style.height = 'auto';
-              e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                if (newMessage.trim() && !sending) {
-                  handleSend();
-                  if (messageInputRef.current) {
-                    messageInputRef.current.style.height = 'auto';
+            <Textarea
+              ref={messageInputRef}
+              rows={1}
+              value={newMessage}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                // auto resize
+                e.target.style.height = 'auto';
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (newMessage.trim() && !sending) {
+                    handleSend();
+                    if (messageInputRef.current) {
+                      messageInputRef.current.style.height = 'auto';
+                    }
                   }
                 }
-              }
-            }}
-            placeholder={editingMsg ? "Edit your message..." : "Type a message (Shift+Enter for newline)..."}
-            className={`flex-1 min-h-[38px] max-h-[160px] py-2 px-3 rounded-xl bg-black/45 text-white text-[13px] border border-white/[0.08] backdrop-blur-md placeholder:text-white/35 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 resize-none font-sans ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
-          />
+              }}
+              placeholder={editingMsg ? "Edit your message..." : "Type a message (Shift+Enter for newline)..."}
+              className={`flex-1 min-h-[38px] max-h-[160px] py-2 px-3 rounded-xl bg-black/45 text-white text-[13px] border border-white/[0.08] backdrop-blur-md placeholder:text-white/35 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 resize-none font-sans ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
+            />
 
-          <Button
-            type="submit"
-            disabled={!newMessage.trim() || sending}
-            size="icon"
-            className={`h-9 w-9 rounded-xl shrink-0 transition-all ${
-              editingMsg 
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
-                : 'glow-btn'
-            }`}
-          >
-            {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-3.5 h-3.5 ml-0.5" />}
-          </Button>
-        </form>
-      </div>
+            <Button
+              type="submit"
+              disabled={!newMessage.trim() || sending}
+              size="icon"
+              className={`h-9 w-9 rounded-xl shrink-0 transition-all ${
+                editingMsg 
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
+                  : 'glow-btn'
+              }`}
+            >
+              {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-3.5 h-3.5 ml-0.5" />}
+            </Button>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

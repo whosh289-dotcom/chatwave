@@ -82,13 +82,27 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       toast.error("Call network error: " + err.type);
     });
 
-    peer.on("call", (incomingCall) => {
+    peer.on("call", async (incomingCall) => {
       if (call) {
         // Busy
         incomingCall.close();
         return;
       }
       
+      // Check if blocked
+      try {
+        const blockRes = await fetch(`/api/users/block-status?userId=${user.id}&otherUserId=${incomingCall.peer}`);
+        if (blockRes.ok) {
+          const blockData = await blockRes.json();
+          if (blockData.isBlockedByMe || blockData.isBlockedByThem) {
+            incomingCall.close();
+            return;
+          }
+        }
+      } catch (e) {
+        // Continue if offline check fails
+      }
+
       const type = incomingCall.metadata?.type || "video";
       const callerName = incomingCall.metadata?.callerName || "Friend";
 
@@ -166,6 +180,21 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   const startCall = useCallback(async (conversationId: string, calleeId: string, calleeName: string, type: CallType) => {
     if (!user || !peerRef.current) return;
     if (call) { toast.error("Already in a call"); return; }
+
+    // Check if communication is blocked
+    try {
+      const blockRes = await fetch(`/api/users/block-status?userId=${user.id}&otherUserId=${calleeId}`);
+      if (blockRes.ok) {
+        const blockData = await blockRes.json();
+        if (blockData.isBlockedByMe || blockData.isBlockedByThem) {
+          toast.error("Cannot call this user due to block settings.");
+          return;
+        }
+      }
+    } catch (e) {
+      // Continue if offline check fails
+    }
+
     try {
       const stream = await getLocalMedia(type);
       
