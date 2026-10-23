@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,96 +6,96 @@
 
 @layer base {
   :root {
-    --background: 228 25% 6%;
-    --foreground: 210 20% 98%;
+    --background: 232 30% 5%;
+    --foreground: 210 25% 98%;
 
-    --card: 228 24% 9%;
-    --card-foreground: 210 20% 98%;
+    --card: 230 25% 7%;
+    --card-foreground: 210 25% 98%;
 
-    --popover: 228 24% 9%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 230 25% 7%;
+    --popover-foreground: 210 25% 98%;
 
-    --primary: 243 75% 59%;
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 228 20% 14%;
+    --secondary: 230 20% 12%;
     --secondary-foreground: 210 20% 95%;
 
-    --muted: 228 15% 15%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 230 18% 13%;
+    --muted-foreground: 220 12% 64%;
 
     --accent: 160 84% 39%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 347 87% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 228 15% 18%;
-    --input: 228 15% 18%;
-    --ring: 243 75% 59%;
+    --border: 230 18% 14%;
+    --input: 230 18% 14%;
+    --ring: 239 84% 67%;
 
     --radius: 1rem;
 
-    --chat-sent: 243 75% 59%;
+    --chat-sent: 239 84% 67%;
     --chat-sent-foreground: 0 0% 100%;
-    --chat-received: 228 20% 13%;
-    --chat-received-foreground: 210 20% 98%;
+    --chat-received: 230 20% 11%;
+    --chat-received-foreground: 210 25% 98%;
 
-    --sidebar-background: 228 25% 7%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 243 75% 59%;
+    --sidebar-background: 232 30% 6%;
+    --sidebar-foreground: 210 25% 98%;
+    --sidebar-primary: 239 84% 67%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 228 20% 14%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 228 15% 16%;
-    --sidebar-ring: 243 75% 59%;
+    --sidebar-accent: 230 20% 12%;
+    --sidebar-accent-foreground: 210 25% 98%;
+    --sidebar-border: 230 18% 13%;
+    --sidebar-ring: 239 84% 67%;
 
-    --font-heading: 'Syne', 'Outfit', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   .dark {
-    --background: 228 25% 6%;
-    --foreground: 210 20% 98%;
+    --background: 232 30% 5%;
+    --foreground: 210 25% 98%;
 
-    --card: 228 24% 9%;
-    --card-foreground: 210 20% 98%;
+    --card: 230 25% 7%;
+    --card-foreground: 210 25% 98%;
 
-    --popover: 228 24% 9%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 230 25% 7%;
+    --popover-foreground: 210 25% 98%;
 
-    --primary: 243 75% 59%;
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 228 20% 14%;
+    --secondary: 230 20% 12%;
     --secondary-foreground: 210 20% 95%;
 
-    --muted: 228 15% 15%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 230 18% 13%;
+    --muted-foreground: 220 12% 64%;
 
     --accent: 160 84% 39%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 347 87% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 228 15% 18%;
-    --input: 228 15% 18%;
-    --ring: 243 75% 59%;
+    --border: 230 18% 14%;
+    --input: 230 18% 14%;
+    --ring: 239 84% 67%;
 
-    --chat-sent: 243 75% 59%;
+    --chat-sent: 239 84% 67%;
     --chat-sent-foreground: 0 0% 100%;
-    --chat-received: 228 20% 13%;
-    --chat-received-foreground: 210 20% 98%;
+    --chat-received: 230 20% 11%;
+    --chat-received-foreground: 210 25% 98%;
 
-    --sidebar-background: 228 25% 7%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 243 75% 59%;
+    --sidebar-background: 232 30% 6%;
+    --sidebar-foreground: 210 25% 98%;
+    --sidebar-primary: 239 84% 67%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 228 20% 14%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 228 15% 16%;
-    --sidebar-ring: 243 75% 59%;
+    --sidebar-accent: 230 20% 12%;
+    --sidebar-accent-foreground: 210 25% 98%;
+    --sidebar-border: 230 18% 13%;
+    --sidebar-ring: 239 84% 67%;
   }
 }
 
@@ -107,26 +107,26 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    letter-spacing: -0.011em;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    letter-spacing: -0.025em;
   }
 }
 
 @layer components {
+  /* Executive Figma Bento Container */
   .bento-glass {
-    background: rgba(14, 16, 25, 0.75);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
+    background: rgba(12, 14, 22, 0.78);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .bento-glass:hover {
-    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.85), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
   }
 
   .pill-badge {
@@ -135,50 +135,58 @@
     gap: 0.5rem;
     padding: 0.35rem 0.85rem;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    letter-spacing: 0.04em;
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
   }
 
+  /* Formal Primary Action Button */
   .glow-btn {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
     color: #ffffff;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 4px 16px -2px rgba(99, 102, 241, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .glow-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 32px -4px rgba(99, 102, 241, 0.55);
-    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px -2px rgba(99, 102, 241, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+    filter: brightness(1.06);
   }
 
   .glow-btn:active:not(:disabled) {
     transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
   }
 
+  /* Polished Outgoing & Incoming Messages */
   .chat-bubble-sent {
-    @apply rounded-2xl rounded-br-sm px-4 py-3 max-w-[75%] ml-auto text-sm leading-relaxed shadow-lg shadow-indigo-500/10;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    @apply rounded-[18px] rounded-br-[4px] px-4 py-2.5 max-w-[75%] ml-auto text-[13.5px] leading-relaxed;
+    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 20px -3px rgba(99, 102, 241, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
     color: #ffffff;
   }
 
   .chat-bubble-received {
-    @apply rounded-2xl rounded-bl-sm px-4 py-3 max-w-[75%] text-sm leading-relaxed;
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(16px);
+    @apply rounded-[18px] rounded-bl-[4px] px-4 py-2.5 max-w-[75%] text-[13.5px] leading-relaxed;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #f8fafc;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+    color: #f1f5f9;
   }
 }
 
-/* Base44 Custom Scrollbars */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* Formal Thin Scrollbars */
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 9999px; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.4); }

@@ -109,59 +109,59 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
   return (
     <div className="flex flex-col h-full bg-transparent">
       {/* Top Header & Account Switcher */}
-      <div className="p-4 border-b border-white/[0.08]">
-        <div className="flex items-center justify-between mb-4">
+      <div className="p-3.5 border-b border-white/[0.08]">
+        <div className="flex items-center justify-between mb-3.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-white/[0.06] rounded-xl border border-transparent hover:border-white/[0.08] transition-all">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center p-0.5">
-                  <Avatar className="w-full h-full rounded-[10px]">
-                    <AvatarFallback className="bg-transparent text-indigo-400 font-bold font-mono text-xs">
+              <Button variant="ghost" className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-white/[0.06] rounded-xl border border-white/[0.05] hover:border-white/[0.1] transition-all bg-white/[0.02]">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/25 to-purple-500/20 border border-white/10 flex items-center justify-center p-0.5">
+                  <Avatar className="w-full h-full rounded-[6px]">
+                    <AvatarFallback className="bg-transparent text-indigo-300 font-semibold font-heading text-xs">
                       {(user?.username || (user as any)?.displayName || "?")[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </div>
                 <div className="flex flex-col items-start text-left">
-                  <span className="text-sm font-bold font-heading text-white tracking-tight leading-tight flex items-center gap-1.5">
+                  <span className="text-[13px] font-semibold font-heading text-white tracking-tight leading-tight flex items-center gap-1.5">
                     {user?.username || (user as any)?.displayName || "Account"}
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                   </span>
-                  <span className="text-[10px] text-white/40 uppercase font-mono tracking-wider">
-                    Switch ID
+                  <span className="text-[10px] text-white/40 font-medium tracking-wide">
+                    Switch profile
                   </span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 p-2 rounded-2xl border border-white/10 bg-[#0c0d14]/90 backdrop-blur-2xl shadow-2xl">
-              <DropdownMenuLabel className="text-[10px] text-white/50 font-bold uppercase tracking-wider mb-1 font-mono">
+            <DropdownMenuContent align="start" className="w-56 p-1.5 rounded-xl border border-white/10 bg-[#0c0d15]/95 backdrop-blur-2xl shadow-2xl">
+              <DropdownMenuLabel className="text-[10px] text-white/50 font-semibold uppercase tracking-wider mb-1 px-2 py-1">
                 Active Profiles
               </DropdownMenuLabel>
               {accounts.map(acc => (
                 <DropdownMenuItem 
                   key={acc.id} 
                   onClick={() => switchAccount(acc.id)}
-                  className={`flex items-center gap-2.5 p-2 cursor-pointer rounded-xl mb-1 text-white/80 hover:text-white transition-all ${acc.id === user?.id ? "bg-indigo-500/20 border border-indigo-500/30 text-white" : "hover:bg-white/[0.06]"}`}
+                  className={`flex items-center gap-2.5 px-2.5 py-2 cursor-pointer rounded-lg mb-0.5 text-white/80 hover:text-white transition-all ${acc.id === user?.id ? "bg-indigo-500/15 border border-indigo-500/30 text-white font-medium" : "hover:bg-white/[0.06]"}`}
                 >
-                  <Avatar className="w-6 h-6 rounded-lg border border-white/10">
-                    <AvatarFallback className="bg-indigo-500/20 text-xs text-indigo-300 font-bold">
+                  <Avatar className="w-6 h-6 rounded-md border border-white/10">
+                    <AvatarFallback className="bg-indigo-500/20 text-[11px] text-indigo-300 font-semibold">
                       {(acc?.username || (acc as any)?.displayName || "?")[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className={`font-medium text-xs truncate ${acc.id === user?.id ? "text-indigo-300 font-semibold" : ""}`}>
+                  <span className={`text-xs truncate ${acc.id === user?.id ? "text-indigo-200 font-semibold" : ""}`}>
                     {acc?.username || (acc as any)?.displayName || "Account"}
                   </span>
                 </DropdownMenuItem>
               ))}
-              <DropdownMenuSeparator className="my-1.5 bg-white/[0.08]" />
+              <DropdownMenuSeparator className="my-1 bg-white/[0.08]" />
               <DropdownMenuItem 
                 onClick={() => window.location.href = "/auth?add=true"}
-                className="flex items-center gap-2 p-2 cursor-pointer rounded-xl text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 font-medium text-xs"
+                className="flex items-center gap-2 px-2.5 py-2 cursor-pointer rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-500/15 font-medium text-xs"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Profile
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={signOut}
-                className="flex items-center gap-2 p-2 cursor-pointer rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 font-medium text-xs"
+                className="flex items-center gap-2 px-2.5 py-2 cursor-pointer rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/15 font-medium text-xs"
               >
                 <LogOut className="w-3.5 h-3.5" /> Sign Out
               </DropdownMenuItem>
@@ -169,10 +169,10 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
           </DropdownMenu>
 
           <div className="flex gap-1.5 items-center">
-            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)} className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-white border border-transparent hover:border-white/[0.08] transition-all">
-              <Settings className="w-4 h-4" />
+            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)} className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" title="Settings">
+              <Settings className="w-3.5 h-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={onNewConversation} className="h-9 w-9 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 shadow-[0_0_15px_rgba(99,102,241,0.2)] transition-all">
+            <Button variant="ghost" size="icon" onClick={onNewConversation} className="h-8 w-8 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-500/30 shadow-[0_0_12px_rgba(99,102,241,0.2)] transition-all" title="New conversation">
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -180,12 +180,12 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/35" />
           <Input 
-            placeholder="Search channels & users..." 
+            placeholder="Search conversations..." 
             value={search} 
             onChange={(e) => setSearch(e.target.value)} 
-            className="pl-9 h-9 bg-black/30 border border-white/[0.08] focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 rounded-xl text-xs text-white placeholder:text-white/40"
+            className="pl-8 h-8 bg-black/40 border border-white/[0.08] focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 rounded-lg text-xs text-white placeholder:text-white/35"
           />
         </div>
       </div>
@@ -210,29 +210,29 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                 <ContextMenuTrigger asChild>
                   <button
                     onClick={() => onSelectConversation(conv.id)}
-                    className={`w-full flex items-center gap-3 p-2.5 rounded-2xl transition-all duration-200 text-left border ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left border ${
                       isSelected
-                        ? "bg-indigo-600/15 border-indigo-500/40 shadow-[0_0_20px_rgba(99,102,241,0.15)] text-white"
-                        : "bg-white/[0.02] hover:bg-white/[0.06] border-white/[0.04] hover:border-white/[0.08] text-white/80 hover:text-white"
+                        ? "bg-indigo-500/15 border-indigo-500/35 shadow-[0_2px_12px_rgba(99,102,241,0.15)] text-white"
+                        : "bg-white/[0.015] hover:bg-white/[0.05] border-white/[0.04] hover:border-white/[0.08] text-white/75 hover:text-white"
                     }`}
                   >
                     <div className="relative shrink-0">
-                      <Avatar className="h-10 w-10 rounded-xl border border-white/10 p-0.5 bg-gradient-to-tr from-white/[0.05] to-white/[0.1]">
+                      <Avatar className="h-9 w-9 rounded-lg border border-white/10 p-0.5 bg-gradient-to-tr from-white/[0.05] to-white/[0.1]">
                         {conv.logo_url ? (
-                          <AvatarImage src={conv.logo_url} alt={getConvDisplayName(conv)} className="object-cover rounded-[10px]" />
+                          <AvatarImage src={conv.logo_url} alt={getConvDisplayName(conv)} className="object-cover rounded-[6px]" />
                         ) : null}
-                        <AvatarFallback className="bg-transparent text-indigo-300 text-xs font-bold font-mono">
+                        <AvatarFallback className="bg-transparent text-indigo-300 text-xs font-semibold font-heading">
                           {conv.memberCount > 2 ? <Users className="w-4 h-4" /> : getInitials(conv.otherUsers[0]?.display_name)}
                         </AvatarFallback>
                       </Avatar>
                       {conv.unread > 0 && (
-                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)] border-2 border-[#090a10]" />
+                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)] border-2 border-[#090a10]" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <p className={`font-heading text-xs font-semibold truncate ${isSelected ? "text-white" : "text-white/90"}`}>
+                          <p className={`font-heading text-[12.5px] font-semibold truncate ${isSelected ? "text-white" : "text-white/90"}`}>
                             {getConvDisplayName(conv)}
                           </p>
                           {conv.is_private && <Lock className="w-3 h-3 text-white/40 shrink-0" />}
@@ -245,8 +245,8 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between gap-2 mt-1">
-                        <p className={`text-[11px] truncate ${conv.unread > 0 ? "text-white font-medium" : "text-white/50"}`}>
+                      <div className="flex items-center justify-between gap-2 mt-0.5">
+                        <p className={`text-[11.5px] truncate ${conv.unread > 0 ? "text-white font-medium" : "text-white/45"}`}>
                           {conv.lastMessage?.content || "No messages yet"}
                         </p>
                         {conv.unread > 0 && (

@@ -449,20 +449,20 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       </AlertDialog>
 
       {/* Header */}
-      <div className="flex items-center gap-3.5 p-4 border-b border-white/[0.08] bg-white/[0.02] backdrop-blur-2xl">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.08] bg-[#0c0e17]/85 backdrop-blur-2xl">
         {onBack && (
-          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onBack(); }} className="md:hidden shrink-0 h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06]">
+          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onBack(); }} className="md:hidden shrink-0 h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06]">
             <ArrowLeft className="w-4 h-4" />
           </Button>
         )}
         <div className="flex items-center gap-3 flex-1 cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setShowGroupSettings(true)}>
           <div className="relative shrink-0">
-            <Avatar className="h-10 w-10 rounded-xl border border-white/10 p-0.5 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20">
+            <Avatar className="h-9 w-9 rounded-lg border border-white/10 p-0.5 bg-gradient-to-tr from-indigo-500/25 to-purple-500/20">
               {convMeta.logo_url ? (
-                <AvatarImage src={convMeta.logo_url} alt={headerTitle} className="object-cover rounded-[10px]" />
+                <AvatarImage src={convMeta.logo_url} alt={headerTitle} className="object-cover rounded-[6px]" />
               ) : null}
-              <AvatarFallback className="bg-transparent text-indigo-300 font-bold font-mono text-xs">
-                {isGroup ? <Users className="w-5 h-5" /> : headerTitle[0]?.toUpperCase() || "?"}
+              <AvatarFallback className="bg-transparent text-indigo-300 font-semibold font-heading text-xs">
+                {isGroup ? <Users className="w-4 h-4" /> : headerTitle[0]?.toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
             {isOtherUserOnline && (
@@ -470,22 +470,22 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             )}
           </div>
           <div className="flex-1 overflow-hidden">
-            <h2 className="font-bold font-heading text-sm text-white truncate flex items-center gap-2">
+            <h2 className="font-semibold font-heading text-[13.5px] text-white truncate flex items-center gap-2">
               {headerTitle}
-              {convMeta.is_private && <Lock className="w-3.5 h-3.5 text-white/40" />}
+              {convMeta.is_private && <Lock className="w-3 h-3 text-white/40" />}
             </h2>
             <div className="flex items-center gap-2 mt-0.5">
               {isGroup ? (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-white/50 text-[10px] font-mono font-medium">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-white/50 text-[10.5px] font-medium">
                   {memberCount} members
                 </span>
               ) : isOtherUserOnline ? (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[10.5px] font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   Active now
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-white/40 text-[10px] font-mono font-medium">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06] text-white/40 text-[10.5px] font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
                   Offline
                 </span>
@@ -494,22 +494,22 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {!isGroup && otherUser && (
             <>
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-emerald-400 border border-white/[0.06] transition-all" onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "voice")}>
-                <Phone className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-emerald-400 border border-white/[0.06] transition-all" onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "voice")} title="Voice Call">
+                <Phone className="w-3.5 h-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-indigo-400 border border-white/[0.06] transition-all" onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "video")}>
-                <Video className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-indigo-300 border border-white/[0.06] transition-all" onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "video")} title="Video Call">
+                <Video className="w-3.5 h-3.5" />
               </Button>
             </>
           )}
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }}>
-            <Search className="w-4 h-4" />
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }} title="Search">
+            <Search className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => setShowGroupSettings(true)}>
-            <Settings className="w-4 h-4" />
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => setShowGroupSettings(true)} title="Conversation Settings">
+            <Settings className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>
@@ -583,8 +583,8 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
                   <div className={`relative px-4 py-2.5 transition-all ${
                     isMe 
-                      ? 'bg-gradient-to-br from-indigo-600 via-indigo-600 to-indigo-700 text-white border border-indigo-400/25 shadow-[0_4px_24px_rgba(99,102,241,0.25)] rounded-2xl rounded-br-sm' 
-                      : 'bg-white/[0.04] hover:bg-white/[0.06] text-white/90 border border-white/[0.08] backdrop-blur-xl rounded-2xl rounded-bl-sm shadow-[0_4px_16px_rgba(0,0,0,0.25)]'
+                      ? 'chat-bubble-sent' 
+                      : 'chat-bubble-received'
                   }`}>
                     {/* Reply preview */}
                     {msg.reply_to_id && (() => {
@@ -694,11 +694,11 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       )}
 
       {/* Input Dock */}
-      <div className="p-3.5 bg-white/[0.02] border-t border-white/[0.08] backdrop-blur-2xl">
-        <form onSubmit={handleSend} className="flex gap-2 items-center">
+      <div className="p-3 bg-[#0b0d14]/90 border-t border-white/[0.08] backdrop-blur-2xl">
+        <form onSubmit={handleSend} className="flex gap-2 items-end">
           <Popover>
             <PopoverTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white/[0.08] text-white/60 hover:text-white shrink-0 border border-white/[0.06] transition-all">
+              <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
                 <Smile className="w-4 h-4" />
               </Button>
             </PopoverTrigger>
@@ -709,7 +709,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
           <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
             <PopoverTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white/[0.08] text-white/60 hover:text-white shrink-0 border border-white/[0.06] transition-all">
+              <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
                 <ImageIcon className="w-4 h-4" />
               </Button>
             </PopoverTrigger>
@@ -740,20 +740,20 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               }
             }}
             placeholder={editingMsg ? "Edit your message..." : "Type a message (Shift+Enter for newline)..."}
-            className={`flex-1 min-h-[40px] max-h-[160px] py-2.5 px-3 rounded-xl bg-black/40 text-white text-xs border border-white/[0.08] backdrop-blur-md placeholder:text-white/40 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 resize-none font-mono ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
+            className={`flex-1 min-h-[38px] max-h-[160px] py-2 px-3 rounded-xl bg-black/45 text-white text-[13px] border border-white/[0.08] backdrop-blur-md placeholder:text-white/35 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 resize-none font-sans ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
           />
 
           <Button
             type="submit"
             disabled={!newMessage.trim() || sending}
             size="icon"
-            className={`h-10 w-10 rounded-xl shrink-0 shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all ${
+            className={`h-9 w-9 rounded-xl shrink-0 transition-all ${
               editingMsg 
                 ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
-                : 'bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white'
+                : 'glow-btn'
             }`}
           >
-            {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4 ml-0.5" />}
+            {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-3.5 h-3.5 ml-0.5" />}
           </Button>
         </form>
       </div>
