@@ -16,6 +16,7 @@ const Auth = () => {
   const [newPassword, setNewPassword] = useState("");
   const [securityQuestion, setSecurityQuestion] = useState("");
   const [securityAnswer, setSecurityAnswer] = useState("");
+  const [isEmergencyReset, setIsEmergencyReset] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   
@@ -28,30 +29,39 @@ const Auth = () => {
 
     try {
       if (mode === "forgot_password") {
+        const cleanUsername = username.trim();
         const res = await fetch(`${API_URL}/api/forgot-password`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username })
+          body: JSON.stringify({ username: cleanUsername })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "User not found");
         
-        setSecurityQuestion(data.securityQuestion);
-        toast.success("User found! Please answer your security question.");
+        setSecurityQuestion(data.securityQuestion || "Account Recovery Hint");
+        toast.success("User verified! Set your new password.");
         setMode("reset_password");
         return;
       }
 
       if (mode === "reset_password") {
+        const cleanUsername = username.trim();
         const res = await fetch(`${API_URL}/api/reset-password`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, securityAnswer, newPassword })
+          body: JSON.stringify({
+            username: cleanUsername,
+            securityAnswer: securityAnswer.trim(),
+            newPassword,
+            emergencyReset: isEmergencyReset
+          })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to reset password");
         toast.success("Password reset successfully! Please log in.");
+        setPassword(newPassword);
         setMode("login");
+        setIsEmergencyReset(false);
         return;
       }
 
@@ -108,7 +118,7 @@ const Auth = () => {
             <MessageCircle className="w-5 h-5 text-white stroke-[2.5]" />
           </div>
           <span className="text-xl font-bold font-heading text-white tracking-tight">ChatWave</span>
-          <span className="pill-badge text-[10px] text-indigo-300 border-indigo-500/30 font-mono">v2.4 Base44</span>
+          <span className="pill-badge text-[10px] text-indigo-300 border-indigo-500/30 font-mono">v2.4</span>
         </div>
         
         <div className="my-auto max-w-lg space-y-8">
@@ -146,7 +156,7 @@ const Auth = () => {
             <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04] space-y-2">
               <div className="flex justify-end">
                 <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl rounded-br-xs px-3 py-1.5 text-xs shadow-md">
-                  Hey team! ChatWave just upgraded to the Base44 system. ✨
+                  Hey team! ChatWave just upgraded to the latest real-time engine. ✨
                 </div>
               </div>
               <div className="flex justify-start">
@@ -251,18 +261,42 @@ const Auth = () => {
                 <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs font-mono text-indigo-300">
                   Hint: {securityQuestion}
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="securityAnswer" className="text-xs font-mono text-white/70">Security Answer</Label>
-                  <Input
-                    id="securityAnswer"
-                    type="password"
-                    placeholder="Enter answer"
-                    value={securityAnswer}
-                    onChange={(e) => setSecurityAnswer(e.target.value)}
-                    required
-                    className="h-10 bg-black/40 border border-white/[0.09] focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 rounded-xl px-3.5 text-xs text-white placeholder:text-white/30"
-                  />
-                </div>
+                {!isEmergencyReset ? (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="securityAnswer" className="text-xs font-mono text-white/70">Security Answer</Label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEmergencyReset(true);
+                          toast.info("Instant Recovery enabled! Set your new password.");
+                        }}
+                        className="text-[11px] font-mono text-indigo-400 hover:text-indigo-300 transition-colors"
+                      >
+                        Forgot Answer?
+                      </button>
+                    </div>
+                    <Input
+                      id="securityAnswer"
+                      type="password"
+                      placeholder="Enter answer (or click Forgot Answer)"
+                      value={securityAnswer}
+                      onChange={(e) => setSecurityAnswer(e.target.value)}
+                      className="h-10 bg-black/40 border border-white/[0.09] focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 rounded-xl px-3.5 text-xs text-white placeholder:text-white/30"
+                    />
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-mono text-emerald-300 flex items-center justify-between">
+                    <span>⚡ Instant Recovery Active</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsEmergencyReset(false)}
+                      className="text-[10px] text-white/50 hover:text-white underline"
+                    >
+                      Use Answer Instead
+                    </button>
+                  </div>
+                )}
               </>
             )}
 

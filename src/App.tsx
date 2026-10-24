@@ -42,7 +42,7 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 const GlobalBackground = () => {
   return (
     <div className="fixed inset-0 -z-10 bg-[#07080d] overflow-hidden pointer-events-none">
-      {/* Base44 Ambient Radial Lighting Mesh */}
+      {/* Ambient Radial Lighting Mesh */}
       <div className="absolute w-[900px] h-[700px] bg-indigo-500/10 rounded-full blur-[140px] top-[-25%] left-[20%]"></div>
       <div className="absolute w-[700px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[160px] bottom-[-20%] right-[-10%]"></div>
       <div className="absolute w-[600px] h-[500px] bg-sky-500/[0.04] rounded-full blur-[140px] top-[40%] left-[-15%]"></div>

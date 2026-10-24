@@ -154,6 +154,13 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
     };
   }, []);
 
+  const setChatBgWallpaper = (bg: string) => {
+    setChatBg(bg);
+    localStorage.setItem("chat-bg", bg);
+    window.dispatchEvent(new Event("chat-bg-change"));
+    toast.success(`Wallpaper updated`);
+  };
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -623,6 +630,36 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }} title="Search">
             <Search className="w-3.5 h-3.5" />
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" title="Chat Wallpaper">
+                <ImageIcon className="w-3.5 h-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-[#0e111a]/95 border-white/10 text-white p-1.5 rounded-xl shadow-2xl w-48 backdrop-blur-2xl">
+              <div className="px-2 py-1 text-[10px] font-bold text-white/40 uppercase tracking-wider">Chat Wallpaper</div>
+              <DropdownMenuItem onClick={() => setChatBgWallpaper("doodle")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
+                <span>WhatsApp Doodle</span>
+                {chatBg === "doodle" && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChatBgWallpaper("dots")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
+                <span>Subtle Dots</span>
+                {chatBg === "dots" && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChatBgWallpaper("grid")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
+                <span>Modern Grid</span>
+                {chatBg === "grid" && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChatBgWallpaper("lines")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
+                <span>Diagonal Lines</span>
+                {chatBg === "lines" && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChatBgWallpaper("none")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
+                <span>Deep Solid</span>
+                {chatBg === "none" && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => setShowGroupSettings(true)} title="Conversation Settings">
             <Settings className="w-3.5 h-3.5" />
           </Button>

@@ -31,7 +31,7 @@ const Chat = () => {
               />
             </div>
           ) : (
-            /* Base44 Editorial Empty State Showcase */
+            /* Editorial Empty State Showcase */
             <div className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 relative overflow-hidden bg-gradient-to-b from-white/[0.015] to-transparent">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-indigo-500/[0.07] rounded-full blur-[120px] pointer-events-none"></div>
 

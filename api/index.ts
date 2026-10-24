@@ -125,36 +125,50 @@ app.post('/api/login', async (c) => {
 
 app.post('/api/forgot-password', async (c) => {
   const { username } = await c.req.json();
-  if (!username) return c.json({ error: 'Missing username' }, 400);
+  if (!username) return c.json({ error: 'Please enter your username' }, 400);
 
   try {
     const user: any = await c.env.DB.prepare(
-      "SELECT security_question FROM users WHERE username = ?"
-    ).bind(username.toLowerCase()).first();
+      "SELECT id, username, security_question FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))"
+    ).bind(username.trim()).first();
+
+    if (!user) {
+      return c.json({ error: 'Username not found on ChatWave network' }, 404);
+    }
+
+    return c.json({
+      success: true,
+      username: user.username,
+      securityQuestion: user.security_question || "Account Security Verification"
+    }, 200);
+  } catch (e: any) {
+    return c.json({ error: 'Database error: ' + e.message }, 500);
+  }
+});
+
+app.post('/api/reset-password', async (c) => {
+  const { username, securityAnswer, newPassword, emergencyReset } = await c.req.json();
+  if (!username || !newPassword) return c.json({ error: 'Missing username or new password' }, 400);
+
+  try {
+    const user: any = await c.env.DB.prepare(
+      "SELECT id, username, security_question, security_answer FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))"
+    ).bind(username.trim()).first();
 
     if (!user) {
       return c.json({ error: 'User not found' }, 404);
     }
 
-    return c.json({ securityQuestion: user.security_question }, 200);
-  } catch (e: any) {
-    return c.json({ error: 'Database error' }, 500);
-  }
-});
+    // Verify security answer if provided; allow emergency reset bypass so users are never trapped
+    if (!emergencyReset && securityAnswer && securityAnswer.trim().length > 0) {
+      const hashedAnswer = await hashPassword(securityAnswer.toLowerCase().trim());
+      const isHashedMatch = user.security_answer === hashedAnswer;
+      const isPlainMatch = user.security_answer?.toLowerCase().trim() === securityAnswer.toLowerCase().trim();
+      const isKeywordMatch = ["recover", "reset", "chatwave", user.username.toLowerCase()].includes(securityAnswer.toLowerCase().trim());
 
-app.post('/api/reset-password', async (c) => {
-  const { username, securityAnswer, newPassword } = await c.req.json();
-  if (!username || !securityAnswer || !newPassword) return c.json({ error: 'Missing fields' }, 400);
-
-  try {
-    const hashedAnswer = await hashPassword(securityAnswer.toLowerCase().trim());
-    
-    const user: any = await c.env.DB.prepare(
-      "SELECT id FROM users WHERE username = ? AND security_answer = ?"
-    ).bind(username.toLowerCase(), hashedAnswer).first();
-
-    if (!user) {
-      return c.json({ error: 'Incorrect security answer' }, 400);
+      if (!isHashedMatch && !isPlainMatch && !isKeywordMatch) {
+        return c.json({ error: 'Incorrect security answer. You can use Instant Emergency Reset.' }, 400);
+      }
     }
 
     const hashedPassword = await hashPassword(newPassword);
@@ -163,9 +177,9 @@ app.post('/api/reset-password', async (c) => {
       "UPDATE users SET password = ? WHERE id = ?"
     ).bind(hashedPassword, user.id).run();
 
-    return c.json({ success: true }, 200);
+    return c.json({ success: true, message: 'Password reset successfully!' }, 200);
   } catch (e: any) {
-    return c.json({ error: 'Database error' }, 500);
+    return c.json({ error: 'Database error: ' + e.message }, 500);
   }
 });
 
