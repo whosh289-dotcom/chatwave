@@ -43,53 +43,52 @@ import { motion } from "framer-motion";
 
 const GlobalBackground = () => {
   return (
-    <div className="fixed inset-0 -z-10 bg-[#07080d] overflow-hidden pointer-events-none">
-      {/* Living Ambient Lighting Mesh with Framer Motion */}
+    <div className="fixed inset-0 -z-10 bg-[#070811] overflow-hidden pointer-events-none">
+      {/* Figma Luminous Glass Lighting Orbs */}
       <motion.div
         animate={{
-          x: [0, 40, -30, 0],
-          y: [0, -30, 20, 0],
-          scale: [1, 1.1, 0.95, 1],
+          x: [0, 60, -40, 0],
+          y: [0, -40, 30, 0],
+          scale: [1, 1.15, 0.95, 1],
+        }}
+        transition={{
+          duration: 18,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute w-[800px] h-[700px] bg-gradient-to-tr from-indigo-600/35 to-purple-600/30 rounded-full blur-[110px] -top-32 -left-20"
+      />
+
+      <motion.div
+        animate={{
+          x: [0, -50, 40, 0],
+          y: [0, 40, -35, 0],
+          scale: [1, 1.12, 0.9, 1],
         }}
         transition={{
           duration: 22,
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute w-[900px] h-[700px] bg-indigo-500/12 rounded-full blur-[140px] top-[-25%] left-[20%]"
+        className="absolute w-[750px] h-[650px] bg-gradient-to-br from-cyan-500/25 via-blue-600/25 to-indigo-600/20 rounded-full blur-[120px] -bottom-32 -right-20"
       />
 
       <motion.div
         animate={{
-          x: [0, -40, 30, 0],
-          y: [0, 30, -25, 0],
-          scale: [1, 1.08, 0.92, 1],
-        }}
-        transition={{
-          duration: 26,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute w-[700px] h-[600px] bg-emerald-500/[0.08] rounded-full blur-[160px] bottom-[-20%] right-[-10%]"
-      />
-
-      <motion.div
-        animate={{
-          x: [0, 30, -20, 0],
-          y: [0, -20, 30, 0],
+          x: [0, 40, -50, 0],
+          y: [0, -30, 40, 0],
+          scale: [0.95, 1.1, 0.95, 1],
         }}
         transition={{
           duration: 20,
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute w-[600px] h-[500px] bg-sky-500/[0.05] rounded-full blur-[140px] top-[40%] left-[-15%]"
+        className="absolute w-[600px] h-[550px] bg-gradient-to-tr from-emerald-500/20 via-teal-500/20 to-indigo-500/15 rounded-full blur-[100px] top-[30%] right-[25%]"
       />
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.08)_0%,transparent_60%)]"></div>
-      
-      {/* Subtle Technical Grid Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.15)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
     </div>
   );
 };

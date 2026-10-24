@@ -135,10 +135,10 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
         <div className="flex items-center justify-between mb-3.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-white/[0.06] rounded-xl border border-white/[0.05] hover:border-white/[0.1] transition-all bg-white/[0.02]">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/25 to-purple-500/20 border border-white/10 flex items-center justify-center p-0.5">
+              <Button variant="ghost" className="flex items-center gap-2.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-xl border border-white/[0.08] hover:border-white/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.2)] transition-all backdrop-blur-md">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/30 to-purple-500/25 border border-white/15 flex items-center justify-center p-0.5 shadow-sm">
                   <Avatar className="w-full h-full rounded-[6px]">
-                    <AvatarFallback className="bg-transparent text-indigo-300 font-semibold font-heading text-xs">
+                    <AvatarFallback className="bg-transparent text-indigo-200 font-semibold font-heading text-xs">
                       {(user?.username || (user as any)?.displayName || "?")[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -146,9 +146,9 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                 <div className="flex flex-col items-start text-left">
                   <span className="text-[13px] font-semibold font-heading text-white tracking-tight leading-tight flex items-center gap-1.5">
                     {user?.username || (user as any)?.displayName || "Account"}
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"></span>
                   </span>
-                  <span className="text-[10px] text-white/40 font-medium tracking-wide">
+                  <span className="text-[10px] text-white/45 font-medium tracking-wide">
                     Switch profile
                   </span>
                 </div>
@@ -202,12 +202,12 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/35" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
           <Input 
             placeholder="Search conversations..." 
             value={search} 
             onChange={(e) => setSearch(e.target.value)} 
-            className="pl-8 h-8 bg-black/40 border border-white/[0.08] focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 rounded-lg text-xs text-white placeholder:text-white/35"
+            className="pl-8 h-8 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] focus-visible:border-indigo-400/60 focus-visible:ring-1 focus-visible:ring-indigo-400/40 rounded-xl text-xs text-white placeholder:text-white/40 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
           />
         </div>
 
@@ -282,10 +282,10 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                     whileTap={{ scale: 0.992 }}
                     transition={{ type: "spring", stiffness: 450, damping: 30 }}
                     onClick={() => onSelectConversation(conv.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 text-left border ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left border ${
                       isSelected
-                        ? "bg-indigo-500/15 border-indigo-500/35 shadow-[0_2px_12px_rgba(99,102,241,0.15)] text-white"
-                        : "bg-white/[0.015] hover:bg-white/[0.05] border-white/[0.04] hover:border-white/[0.08] text-white/75 hover:text-white"
+                        ? "bg-indigo-500/20 border-indigo-400/40 shadow-[0_4px_20px_rgba(99,102,241,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] text-white backdrop-blur-md"
+                        : "bg-white/[0.025] hover:bg-white/[0.065] border-white/[0.05] hover:border-white/[0.12] text-white/80 hover:text-white backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
                     }`}
                   >
                     <div className="relative shrink-0">

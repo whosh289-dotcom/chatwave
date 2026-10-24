@@ -543,7 +543,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       </AlertDialog>
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.08] bg-[#0c0e17]/85 backdrop-blur-2xl">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.08] bg-black/30 backdrop-blur-2xl">
         {onBack && (
           <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onBack(); }} className="md:hidden shrink-0 h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06]">
             <ArrowLeft className="w-4 h-4" />
@@ -917,7 +917,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           </span>
         </div>
       ) : (
-        <div className="p-3 bg-[#0b0d14]/90 border-t border-white/[0.08] backdrop-blur-2xl">
+        <div className="p-3 bg-black/35 border-t border-white/[0.08] backdrop-blur-2xl">
           <form onSubmit={handleSend} className="flex gap-2 items-end">
             <Popover>
               <PopoverTrigger asChild>

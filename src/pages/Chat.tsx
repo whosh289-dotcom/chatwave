@@ -13,8 +13,8 @@ const Chat = () => {
     <div className="flex h-screen w-full bg-transparent md:p-3 lg:p-4">
       <div className="flex w-full h-full bento-glass overflow-hidden md:rounded-3xl relative">
         
-        {/* Sidebar - responsive visibility */}
-        <div className={`w-full md:w-[360px] lg:w-[380px] shrink-0 border-r border-white/[0.07] bg-[#0b0d14]/75 backdrop-blur-2xl ${selectedConversation ? "hidden md:block" : ""}`}>
+        {/* Sidebar - responsive visibility with Figma Frosted Glass */}
+        <div className={`w-full md:w-[360px] lg:w-[380px] shrink-0 border-r border-white/[0.08] bg-black/25 backdrop-blur-2xl ${selectedConversation ? "hidden md:block" : ""}`}>
           <ChatSidebar
             selectedConversation={selectedConversation}
             onSelectConversation={setSelectedConversation}
