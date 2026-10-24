@@ -707,20 +707,21 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       <div 
         ref={scrollAreaRef} 
         onScroll={handleScroll} 
-        className={`flex-1 overflow-y-auto p-4 space-y-3 transition-colors duration-300 ${
+        className={`flex-1 overflow-y-auto px-4 py-3 transition-colors duration-300 ${
           chatBg === "doodle" ? "chat-bg-doodle" :
           chatBg === "dots" ? "chat-bg-dots" :
           chatBg === "grid" ? "chat-bg-grid" :
           chatBg === "lines" ? "chat-bg-lines" : "chat-bg-none"
         }`}
       >
-        {/* Framer-inspired Encrypted Header Pill */}
-        <div className="flex items-center justify-center my-2 select-none">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/50 border border-white/[0.08] backdrop-blur-md text-[10.5px] font-mono text-amber-300/80 shadow-sm select-none">
-            <Lock className="w-3 h-3 text-amber-400 shrink-0" />
-            <span>Messages & calls are end-to-end encrypted</span>
+        <div className="max-w-4xl mx-auto w-full space-y-3">
+          {/* Framer-inspired Encrypted Header Pill */}
+          <div className="flex items-center justify-center my-2 select-none">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/50 border border-white/[0.08] backdrop-blur-md text-[10.5px] font-mono text-amber-300/80 shadow-sm select-none">
+              <Lock className="w-3 h-3 text-amber-400 shrink-0" />
+              <span>Messages & calls are end-to-end encrypted</span>
+            </div>
           </div>
-        </div>
 
         {displayMessages.map((msg, i) => {
           const isMe = msg.sender_id === user?.id;
@@ -777,7 +778,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                 <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
                   {!isMe && showAvatar && isGroup && <span className="text-[10px] font-mono text-white/50 mb-1 ml-1">{senderName}</span>}
 
-                  <div className={`relative px-4 py-2.5 transition-all ${
+                  <div className={`relative min-w-[76px] transition-all ${
                     isMe 
                       ? 'chat-bubble-sent' 
                       : 'chat-bubble-received'
@@ -796,16 +797,50 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                     })()}
 
                     {msg.gif_url ? (
-                      <div className="rounded-xl overflow-hidden mt-1 max-w-[240px] border border-white/10 shadow-lg">
-                        <img src={msg.gif_url.replace('[GIF] ', '')} alt="GIF" className="w-full h-auto" loading="lazy" />
+                      <div className="space-y-1">
+                        <div className="rounded-xl overflow-hidden mt-0.5 max-w-[240px] border border-white/10 shadow-lg">
+                          <img src={msg.gif_url.replace('[GIF] ', '')} alt="GIF" className="w-full h-auto" loading="lazy" />
+                        </div>
+                        <div className={`flex items-center gap-1.5 justify-end text-[10px] font-mono select-none ${isMe ? 'text-white/75' : 'text-white/45'}`}>
+                          <span>{format(new Date(msg.created_at), "HH:mm")}</span>
+                          {msg.edited && <span className="italic text-[9px] text-white/50">edited</span>}
+                          {isMe && !msg.id.startsWith("temp-") && (
+                            new Date(msg.created_at).getTime() <= maxReadTime ? (
+                              <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
+                            ) : (
+                              <Check className="w-3 h-3 opacity-60" />
+                            )
+                          )}
+                          {msg.id.startsWith("temp-") && (
+                            <span className="opacity-40 font-mono">sending…</span>
+                          )}
+                        </div>
                       </div>
                     ) : (
-                      <div className="text-[14px] leading-relaxed break-words whitespace-pre-wrap">{renderMarkdown(msg.content)}</div>
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-2.5 gap-y-0.5">
+                        <div className="text-[13.5px] leading-snug break-words whitespace-pre-wrap flex-1 min-w-[20px]">
+                          {renderMarkdown(msg.content)}
+                        </div>
+                        <div className={`inline-flex items-center gap-1 shrink-0 text-[10px] font-mono select-none self-end pb-0.5 ml-auto ${isMe ? 'text-white/75' : 'text-white/45'}`}>
+                          <span>{format(new Date(msg.created_at), "HH:mm")}</span>
+                          {msg.edited && <span className="italic text-[9px] text-white/50">edited</span>}
+                          {isMe && !msg.id.startsWith("temp-") && (
+                            new Date(msg.created_at).getTime() <= maxReadTime ? (
+                              <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
+                            ) : (
+                              <Check className="w-3 h-3 opacity-60" />
+                            )
+                          )}
+                          {msg.id.startsWith("temp-") && (
+                            <span className="opacity-40 font-mono">sending…</span>
+                          )}
+                        </div>
+                      </div>
                     )}
 
                     {/* Message actions (hover) */}
                     {!msg.id.startsWith("temp-") && (
-                      <div className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-[#0c0d14]/90 backdrop-blur-2xl rounded-full border border-white/10 p-0.5 shadow-2xl z-10`}>
+                      <div className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-[#0c0d14]/90 backdrop-blur-2xl rounded-full border border-white/10 p-0.5 shadow-2xl z-10 select-none`}>
                         <button onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Reply">
                           <Reply className="w-3.5 h-3.5" />
                         </button>
@@ -831,29 +866,14 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                         )}
                       </div>
                     )}
-
-                    {/* Timestamp + status */}
-                    <div className={`flex items-center gap-1.5 mt-1 ${isMe ? 'justify-end text-white/70' : 'justify-start text-white/40'} text-[10px] font-mono`}>
-                      <span>{format(new Date(msg.created_at), "HH:mm")}</span>
-                      {msg.edited && <span className="italic text-white/50">edited</span>}
-                      {isMe && !msg.id.startsWith("temp-") && (
-                        new Date(msg.created_at).getTime() <= maxReadTime ? (
-                          <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
-                        ) : (
-                          <Check className="w-3 h-3 opacity-60" />
-                        )
-                      )}
-                      {msg.id.startsWith("temp-") && (
-                        <span className="opacity-40 font-mono">sending…</span>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>
             </motion.div>
           );
         })}
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Scroll to bottom FAB */}
@@ -868,24 +888,26 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
       {/* Reply / Edit banner */}
       {(replyTo || editingMsg) && (
-        <div className="px-4 py-2 bg-[#0c0d14]/80 backdrop-blur-2xl border-t border-white/[0.08] flex items-center gap-3 animate-in slide-in-from-bottom-2">
-          <div className="w-1 h-8 bg-indigo-500 rounded-full shrink-0 shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-indigo-400 font-mono">
-              {editingMsg ? "Editing message" : `Replying to ${replyTo?.sender_id === user?.id ? "yourself" : (participantNames[replyTo?.sender_id || ""] || "Unknown")}`}
-            </p>
-            <p className="text-xs text-white/60 truncate font-mono">
-              {editingMsg?.content || replyTo?.content || "GIF"}
-            </p>
+        <div className="px-4 py-2 bg-[#0c0d14]/80 backdrop-blur-2xl border-t border-white/[0.08] animate-in slide-in-from-bottom-2">
+          <div className="max-w-4xl mx-auto w-full flex items-center gap-3">
+            <div className="w-1 h-8 bg-indigo-500 rounded-full shrink-0 shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-indigo-400 font-mono">
+                {editingMsg ? "Editing message" : `Replying to ${replyTo?.sender_id === user?.id ? "yourself" : (participantNames[replyTo?.sender_id || ""] || "Unknown")}`}
+              </p>
+              <p className="text-xs text-white/60 truncate font-mono">
+                {editingMsg?.content || replyTo?.content || "GIF"}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 rounded-lg text-white/40 hover:text-white shrink-0"
+              onClick={() => { setReplyTo(null); setEditingMsg(null); setNewMessage(""); }}
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 rounded-lg text-white/40 hover:text-white shrink-0"
-            onClick={() => { setReplyTo(null); setEditingMsg(null); setNewMessage(""); }}
-          >
-            <X className="w-4 h-4" />
-          </Button>
         </div>
       )}
 
@@ -918,69 +940,71 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         </div>
       ) : (
         <div className="p-3 bg-black/35 border-t border-white/[0.08] backdrop-blur-2xl">
-          <form onSubmit={handleSend} className="flex gap-2 items-end">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
-                  <Smile className="w-4 h-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent side="top" align="start" className="p-0 border-none w-auto bg-transparent shadow-2xl">
-                <EmojiPicker theme={EmojiTheme.DARK} onEmojiClick={(e) => setNewMessage((m) => m + e.emoji)} width={320} height={400} />
-              </PopoverContent>
-            </Popover>
+          <div className="max-w-4xl mx-auto w-full">
+            <form onSubmit={handleSend} className="flex gap-2 items-end">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
+                    <Smile className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent side="top" align="start" className="p-0 border-none w-auto bg-transparent shadow-2xl">
+                  <EmojiPicker theme={EmojiTheme.DARK} onEmojiClick={(e) => setNewMessage((m) => m + e.emoji)} width={320} height={400} />
+                </PopoverContent>
+              </Popover>
 
-            <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
-              <PopoverTrigger asChild>
-                <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
-                  <ImageIcon className="w-4 h-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent side="top" align="start" className="p-0 border-none bg-transparent shadow-none w-auto">
-                <GifPicker onPick={(url) => { sendGif(url); setGifPickerOpen(false); }} />
-              </PopoverContent>
-            </Popover>
+              <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
+                    <ImageIcon className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent side="top" align="start" className="p-0 border-none bg-transparent shadow-none w-auto">
+                  <GifPicker onPick={(url) => { sendGif(url); setGifPickerOpen(false); }} />
+                </PopoverContent>
+              </Popover>
 
-            <Textarea
-              ref={messageInputRef}
-              rows={1}
-              value={newMessage}
-              onChange={(e) => {
-                setNewMessage(e.target.value);
-                // auto resize
-                e.target.style.height = 'auto';
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  if (newMessage.trim() && !sending) {
-                    handleSend();
-                    if (messageInputRef.current) {
-                      messageInputRef.current.style.height = 'auto';
+              <Textarea
+                ref={messageInputRef}
+                rows={1}
+                value={newMessage}
+                onChange={(e) => {
+                  setNewMessage(e.target.value);
+                  // auto resize
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (newMessage.trim() && !sending) {
+                      handleSend();
+                      if (messageInputRef.current) {
+                        messageInputRef.current.style.height = 'auto';
+                      }
                     }
                   }
-                }
-              }}
-              placeholder={editingMsg ? "Edit your message..." : "Type a message (Shift+Enter for newline)..."}
-              className={`flex-1 min-h-[38px] max-h-[160px] py-2 px-3 rounded-xl bg-black/45 text-white text-[13px] border border-white/[0.08] backdrop-blur-md placeholder:text-white/35 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 resize-none font-sans ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
-            />
+                }}
+                placeholder={editingMsg ? "Edit your message..." : "Type a message (Shift+Enter for newline)..."}
+                className={`flex-1 min-h-[38px] max-h-[160px] py-2 px-3 rounded-xl bg-black/45 text-white text-[13px] border border-white/[0.08] backdrop-blur-md placeholder:text-white/35 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 resize-none font-sans ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
+              />
 
-            <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>
-              <Button
-                type="submit"
-                disabled={!newMessage.trim() || sending}
-                size="icon"
-                className={`h-9 w-9 rounded-xl shrink-0 transition-all ${
-                  editingMsg 
-                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
-                    : 'glow-btn'
-                }`}
-              >
-                {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-3.5 h-3.5 ml-0.5" />}
-              </Button>
-            </motion.div>
-          </form>
+              <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>
+                <Button
+                  type="submit"
+                  disabled={!newMessage.trim() || sending}
+                  size="icon"
+                  className={`h-9 w-9 rounded-xl shrink-0 transition-all ${
+                    editingMsg 
+                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
+                      : 'glow-btn'
+                  }`}
+                >
+                  {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-3.5 h-3.5 ml-0.5" />}
+                </Button>
+              </motion.div>
+            </form>
+          </div>
         </div>
       )}
       </div>

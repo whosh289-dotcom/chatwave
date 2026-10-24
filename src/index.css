@@ -265,22 +265,22 @@
 
   /* Figma Frosted Glass Outgoing & Incoming Messages */
   .chat-bubble-sent {
-    @apply rounded-[18px] rounded-br-[4px] px-4 py-2.5 max-w-[75%] ml-auto text-[13.5px] leading-relaxed;
+    @apply rounded-[16px] rounded-br-[3px] px-3.5 py-1.5 max-w-[75%] ml-auto text-[13.5px] leading-relaxed;
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.92) 0%, rgba(79, 70, 229, 0.95) 100%);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.24);
-    box-shadow: 0 6px 22px -3px rgba(99, 102, 241, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 16px -2px rgba(99, 102, 241, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
     color: #ffffff;
   }
 
   .chat-bubble-received {
-    @apply rounded-[18px] rounded-bl-[4px] px-4 py-2.5 max-w-[75%] text-[13.5px] leading-relaxed;
+    @apply rounded-[16px] rounded-bl-[3px] px-3.5 py-1.5 max-w-[75%] text-[13.5px] leading-relaxed;
     background: rgba(255, 255, 255, 0.075);
     backdrop-filter: blur(24px) saturate(190%);
     -webkit-backdrop-filter: blur(24px) saturate(190%);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
     color: #f8fafc;
   }
 }
