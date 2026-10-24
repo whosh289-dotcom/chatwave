@@ -39,13 +39,53 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   return user && !isAddingAccount ? <Navigate to="/" replace /> : <>{children}</>;
 };
 
+import { motion } from "framer-motion";
+
 const GlobalBackground = () => {
   return (
     <div className="fixed inset-0 -z-10 bg-[#07080d] overflow-hidden pointer-events-none">
-      {/* Ambient Radial Lighting Mesh */}
-      <div className="absolute w-[900px] h-[700px] bg-indigo-500/10 rounded-full blur-[140px] top-[-25%] left-[20%]"></div>
-      <div className="absolute w-[700px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[160px] bottom-[-20%] right-[-10%]"></div>
-      <div className="absolute w-[600px] h-[500px] bg-sky-500/[0.04] rounded-full blur-[140px] top-[40%] left-[-15%]"></div>
+      {/* Living Ambient Lighting Mesh with Framer Motion */}
+      <motion.div
+        animate={{
+          x: [0, 40, -30, 0],
+          y: [0, -30, 20, 0],
+          scale: [1, 1.1, 0.95, 1],
+        }}
+        transition={{
+          duration: 22,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute w-[900px] h-[700px] bg-indigo-500/12 rounded-full blur-[140px] top-[-25%] left-[20%]"
+      />
+
+      <motion.div
+        animate={{
+          x: [0, -40, 30, 0],
+          y: [0, 30, -25, 0],
+          scale: [1, 1.08, 0.92, 1],
+        }}
+        transition={{
+          duration: 26,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute w-[700px] h-[600px] bg-emerald-500/[0.08] rounded-full blur-[160px] bottom-[-20%] right-[-10%]"
+      />
+
+      <motion.div
+        animate={{
+          x: [0, 30, -20, 0],
+          y: [0, -20, 30, 0],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute w-[600px] h-[500px] bg-sky-500/[0.05] rounded-full blur-[140px] top-[40%] left-[-15%]"
+      />
+
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.08)_0%,transparent_60%)]"></div>
       
       {/* Subtle Technical Grid Overlay */}

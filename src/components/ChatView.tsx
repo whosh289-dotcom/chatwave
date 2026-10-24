@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -697,6 +698,14 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           chatBg === "lines" ? "chat-bg-lines" : "chat-bg-none"
         }`}
       >
+        {/* Framer-inspired Encrypted Header Pill */}
+        <div className="flex items-center justify-center my-2">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/50 border border-white/[0.08] backdrop-blur-md text-[10.5px] font-mono text-amber-300/80 shadow-sm">
+            <Lock className="w-3 h-3 text-amber-400 shrink-0" />
+            <span>Messages & P2P calls are end-to-end encrypted</span>
+          </div>
+        </div>
+
         {displayMessages.map((msg, i) => {
           const isMe = msg.sender_id === user?.id;
           const showAvatar = !isMe && (i === displayMessages.length - 1 || displayMessages[i + 1]?.sender_id !== msg.sender_id);
@@ -709,16 +718,26 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           // Deleted message
           if (msg.deleted_for_everyone) {
             return (
-              <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+              <motion.div 
+                key={msg.id} 
+                initial={{ opacity: 0, y: 6 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+              >
                 <div className="italic text-white/40 text-xs px-3.5 py-1.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] font-mono">
                   🚫 Message deleted
                 </div>
-              </div>
+              </motion.div>
             );
           }
 
           return (
-            <div key={msg.id}>
+            <motion.div 
+              key={msg.id}
+              initial={{ opacity: 0, y: 8, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
               {showDateSep && (
                 <div className="flex items-center justify-center my-4">
                   <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] text-white/60 text-[10px] font-mono font-medium px-3.5 py-1 rounded-full uppercase tracking-widest shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
@@ -815,7 +834,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
         <div ref={messagesEndRef} />

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, LogOut, MessageCircle, Lock, Users, Pin, BellOff, Settings } from "lucide-react";
+import { Search, Plus, LogOut, MessageCircle, Lock, Users, Pin, BellOff, Settings, Sparkles, User, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import ConversationInvites from "@/components/ConversationInvites";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -37,6 +38,7 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
   const [showSettings, setShowSettings] = useState(false);
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [search, setSearch] = useState("");
+  const [filterTab, setFilterTab] = useState<"all" | "unread" | "direct" | "groups">("all");
 
   const fetchConversations = async () => {
     if (!user) return;
@@ -65,15 +67,36 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
   }, [user]);
 
   const filtered = conversations.filter((c) => {
+    // Tab filter
+    if (filterTab === "unread" && c.unread <= 0) return false;
+    if (filterTab === "direct" && c.memberCount > 2) return false;
+    if (filterTab === "groups" && c.memberCount <= 2) return false;
+
     if (!search) return true; // Always show if no search
     const q = search.toLowerCase();
     if (c.name && c.name.toLowerCase().includes(q)) return true;
     return c.otherUsers.some((u) => u.display_name && u.display_name.toLowerCase().includes(q));
   });
 
+  const totalUnreadCount = conversations.reduce((acc, c) => acc + (c.unread || 0), 0);
+
   const getInitials = (name: string | null) => {
     if (!name) return "?";
     return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  const getAvatarGradient = (name: string | null) => {
+    const gradients = [
+      "from-indigo-500/25 to-purple-500/20 text-indigo-300 border-indigo-500/20",
+      "from-cyan-500/25 to-blue-500/20 text-cyan-300 border-cyan-500/20",
+      "from-emerald-500/25 to-teal-500/20 text-emerald-300 border-emerald-500/20",
+      "from-rose-500/25 to-pink-500/20 text-rose-300 border-rose-500/20",
+      "from-amber-500/25 to-orange-500/20 text-amber-300 border-amber-500/20",
+    ];
+    if (!name) return gradients[0];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return gradients[Math.abs(hash) % gradients.length];
   };
 
   const getConvDisplayName = (conv: ConversationPreview) => {
@@ -187,6 +210,38 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
             className="pl-8 h-8 bg-black/40 border border-white/[0.08] focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 rounded-lg text-xs text-white placeholder:text-white/35"
           />
         </div>
+
+        {/* Framer-designed Filter Chips */}
+        <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto no-scrollbar py-0.5">
+          {(
+            [
+              { id: "all", label: "All" },
+              { id: "unread", label: "Unread", count: totalUnreadCount },
+              { id: "direct", label: "Direct" },
+              { id: "groups", label: "Groups" },
+            ] as const
+          ).map((tab) => {
+            const isActive = filterTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setFilterTab(tab.id)}
+                className={`relative px-2.5 py-1 rounded-full text-[11px] font-medium font-heading transition-all shrink-0 flex items-center gap-1.5 ${
+                  isActive
+                    ? "text-white bg-indigo-500/25 border border-indigo-500/40 shadow-[0_0_10px_rgba(99,102,241,0.25)]"
+                    : "text-white/50 hover:text-white/80 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05]"
+                }`}
+              >
+                {tab.label}
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-indigo-500 text-white text-[9px] font-bold flex items-center justify-center">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <ConversationInvites onAccepted={(id) => { onSelectConversation(id); fetchConversations(); }} />
@@ -204,24 +259,29 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
         ) : (
           filtered.map((conv) => {
             const isSelected = selectedConversation === conv.id;
+            const displayName = getConvDisplayName(conv);
+            const avatarGrad = getAvatarGradient(displayName);
             return (
               <ContextMenu key={conv.id}>
                 <ContextMenuTrigger asChild>
-                  <button
+                  <motion.button
+                    whileHover={{ x: 2, scale: 1.008 }}
+                    whileTap={{ scale: 0.992 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
                     onClick={() => onSelectConversation(conv.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left border ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 text-left border ${
                       isSelected
                         ? "bg-indigo-500/15 border-indigo-500/35 shadow-[0_2px_12px_rgba(99,102,241,0.15)] text-white"
                         : "bg-white/[0.015] hover:bg-white/[0.05] border-white/[0.04] hover:border-white/[0.08] text-white/75 hover:text-white"
                     }`}
                   >
                     <div className="relative shrink-0">
-                      <Avatar className="h-9 w-9 rounded-lg border border-white/10 p-0.5 bg-gradient-to-tr from-white/[0.05] to-white/[0.1]">
+                      <Avatar className={`h-9 w-9 rounded-lg border p-0.5 bg-gradient-to-tr ${avatarGrad}`}>
                         {conv.logo_url ? (
-                          <AvatarImage src={conv.logo_url} alt={getConvDisplayName(conv)} className="object-cover rounded-[6px]" />
+                          <AvatarImage src={conv.logo_url} alt={displayName} className="object-cover rounded-[6px]" />
                         ) : null}
-                        <AvatarFallback className="bg-transparent text-indigo-300 text-xs font-semibold font-heading">
-                          {conv.memberCount > 2 ? <Users className="w-4 h-4" /> : getInitials(conv.otherUsers[0]?.display_name)}
+                        <AvatarFallback className="bg-transparent text-xs font-semibold font-heading">
+                          {conv.memberCount > 2 ? <Users className="w-4 h-4" /> : getInitials(displayName)}
                         </AvatarFallback>
                       </Avatar>
                       {conv.unread > 0 && (
@@ -232,7 +292,7 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <p className={`font-heading text-[12.5px] font-semibold truncate ${isSelected ? "text-white" : "text-white/90"}`}>
-                            {getConvDisplayName(conv)}
+                            {displayName}
                           </p>
                           {conv.is_private && <Lock className="w-3 h-3 text-white/40 shrink-0" />}
                           {conv.pinned && <Pin className="w-3 h-3 text-indigo-400 shrink-0" />}
@@ -255,7 +315,7 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                         )}
                       </div>
                     </div>
-                  </button>
+                  </motion.button>
                 </ContextMenuTrigger>
                 <ContextMenuContent className="w-48 bg-[#0c0d14]/90 backdrop-blur-2xl border border-white/10 rounded-xl p-1 shadow-2xl">
                   <ContextMenuItem onClick={() => togglePin(conv)} className="text-xs text-white/80 hover:text-white rounded-lg">
