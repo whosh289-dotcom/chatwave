@@ -715,10 +715,10 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         }`}
       >
         {/* Framer-inspired Encrypted Header Pill */}
-        <div className="flex items-center justify-center my-2">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/50 border border-white/[0.08] backdrop-blur-md text-[10.5px] font-mono text-amber-300/80 shadow-sm">
+        <div className="flex items-center justify-center my-2 select-none">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/50 border border-white/[0.08] backdrop-blur-md text-[10.5px] font-mono text-amber-300/80 shadow-sm select-none">
             <Lock className="w-3 h-3 text-amber-400 shrink-0" />
-            <span>Messages & P2P calls are end-to-end encrypted</span>
+            <span>Messages & calls are end-to-end encrypted</span>
           </div>
         </div>
 
@@ -755,8 +755,8 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               transition={{ type: "spring", stiffness: 420, damping: 28, mass: 0.8 }}
             >
               {showDateSep && (
-                <div className="flex items-center justify-center my-4">
-                  <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] text-white/60 text-[10px] font-mono font-medium px-3.5 py-1 rounded-full uppercase tracking-widest shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
+                <div className="flex items-center justify-center my-4 select-none">
+                  <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] text-white/60 text-[10px] font-mono font-medium px-3.5 py-1 rounded-full uppercase tracking-widest shadow-[0_2px_12px_rgba(0,0,0,0.3)] select-none">
                     {formatDateSeparator(msg.created_at)}
                   </div>
                 </div>

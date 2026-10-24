@@ -67,7 +67,10 @@ const Auth = () => {
 
       // Login or Signup
       const endpoint = mode === "login" ? "/api/login" : "/api/signup";
-      const bodyPayload = mode === "signup" ? { username, password, securityQuestion, securityAnswer } : { username, password };
+      const cleanUsername = username.trim();
+      const bodyPayload = mode === "signup" 
+        ? { username: cleanUsername, password, securityQuestion, securityAnswer } 
+        : { username: cleanUsername, password };
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

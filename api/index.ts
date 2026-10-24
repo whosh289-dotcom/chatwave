@@ -51,6 +51,7 @@ app.post('/api/signup', async (c) => {
     return c.json({ error: 'Missing fields' }, 400);
   }
 
+  const cleanUsername = username.trim().toLowerCase();
   const hashedPassword = await hashPassword(password);
   const hashedAnswer = await hashPassword(securityAnswer.toLowerCase().trim());
   const id = crypto.randomUUID();
@@ -86,14 +87,14 @@ app.post('/api/signup', async (c) => {
     // Insert user
     await c.env.DB.prepare(
       "INSERT INTO users (id, username, password, security_question, security_answer) VALUES (?, ?, ?, ?, ?)"
-    ).bind(id, username.toLowerCase(), hashedPassword, securityQuestion, hashedAnswer).run();
+    ).bind(id, cleanUsername, hashedPassword, securityQuestion, hashedAnswer).run();
 
     // Insert profile
     await c.env.DB.prepare(
       "INSERT INTO profiles (id, user_id, display_name, username) VALUES (?, ?, ?, ?)"
-    ).bind(profileId, id, username, username.toLowerCase()).run();
+    ).bind(profileId, id, username.trim(), cleanUsername).run();
 
-    return c.json({ user: { id, username } }, 200);
+    return c.json({ user: { id, username: cleanUsername } }, 200);
   } catch (e: any) {
     if (e.message.includes('UNIQUE')) {
       return c.json({ error: 'Username already exists' }, 400);
@@ -107,11 +108,12 @@ app.post('/api/login', async (c) => {
   if (!username || !password) return c.json({ error: 'Missing fields' }, 400);
 
   try {
+    const cleanUsername = username.trim().toLowerCase();
     const hashedPassword = await hashPassword(password);
     
     const user: any = await c.env.DB.prepare(
-      "SELECT id, username FROM users WHERE username = ? AND password = ?"
-    ).bind(username.toLowerCase(), hashedPassword).first();
+      "SELECT id, username FROM users WHERE LOWER(TRIM(username)) = ? AND password = ?"
+    ).bind(cleanUsername, hashedPassword).first();
 
     if (!user) {
       return c.json({ error: 'Invalid credentials' }, 401);
