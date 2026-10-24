@@ -9,7 +9,7 @@ import {
   Send, ArrowLeft, FilePenLine, Lock, Settings, Smile, ImageIcon,
   Reply, Trash2, X, MoreVertical, Check, CheckCheck, Forward,
   Phone, Video, Bell, Search, ArrowDown, Copy, Pin, Users, Camera,
-  ShieldAlert, UserX, Loader2
+  ShieldAlert, UserX, Loader2, Info
 } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import GroupSettingsDialog from "@/components/GroupSettingsDialog";
@@ -132,6 +132,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const [otherReadTimes, setOtherReadTimes] = useState<Record<string, string>>({});
   const [otherUsersList, setOtherUsersList] = useState<{ user_id: string; display_name: string; last_seen_at?: string | null; last_read_at?: string }[]>([]);
   const [showGroupSettings, setShowGroupSettings] = useState(false);
+  const [showDetailsDrawer, setShowDetailsDrawer] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [editingMsg, setEditingMsg] = useState<Message | null>(null);
   const [forwardMsg, setForwardMsg] = useState<Message | null>(null);
@@ -499,7 +500,9 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const getDateKey = (dateStr: string) => format(new Date(dateStr), "yyyy-MM-dd");
 
   return (
-    <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
+    <div className="flex h-full w-full bg-transparent relative overflow-hidden">
+      {/* Central Chat Stream */}
+      <div className="flex flex-col flex-1 h-full min-w-0 relative overflow-hidden">
 
       <GroupSettingsDialog
         open={showGroupSettings}
@@ -663,6 +666,19 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           </DropdownMenu>
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => setShowGroupSettings(true)} title="Conversation Settings">
             <Settings className="w-3.5 h-3.5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`h-8 w-8 rounded-lg border transition-all ${
+              showDetailsDrawer 
+                ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/40" 
+                : "hover:bg-white/[0.08] text-white/70 hover:text-white border-white/[0.06]"
+            }`} 
+            onClick={() => setShowDetailsDrawer(!showDetailsDrawer)} 
+            title="Chat Details & Customizer"
+          >
+            <Info className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>
@@ -967,6 +983,133 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           </form>
         </div>
       )}
+      </div>
+
+      {/* Right Details Drawer from Framer project with Figma Smart Animate */}
+      <AnimatePresence>
+        {showDetailsDrawer && (
+          <motion.div
+            initial={{ width: 0, opacity: 0, x: 20 }}
+            animate={{ width: 280, opacity: 1, x: 0 }}
+            exit={{ width: 0, opacity: 0, x: 20 }}
+            transition={{ type: "spring", stiffness: 420, damping: 30 }}
+            className="hidden md:flex flex-col border-l border-white/[0.08] bg-[#0a0c14]/95 backdrop-blur-2xl p-5 overflow-y-auto shrink-0 z-20"
+          >
+            {/* Header close button */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-white/40 font-mono">Chat Info</span>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-white/50 hover:text-white rounded-lg" onClick={() => setShowDetailsDrawer(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Profile Avatar Large */}
+            <div className="flex flex-col items-center text-center mt-5 mb-5">
+              <Avatar className="h-20 w-20 rounded-2xl border-2 border-white/10 p-0.5 bg-gradient-to-tr from-indigo-500/30 to-purple-500/25 shadow-xl">
+                {convMeta.logo_url ? (
+                  <AvatarImage src={convMeta.logo_url} alt={headerTitle} className="object-cover rounded-[14px]" />
+                ) : null}
+                <AvatarFallback className="bg-transparent text-indigo-300 font-bold font-heading text-2xl">
+                  {isGroup ? <Users className="w-8 h-8" /> : headerTitle[0]?.toUpperCase() || "?"}
+                </AvatarFallback>
+              </Avatar>
+              <h3 className="font-heading font-bold text-base text-white mt-3 leading-tight">{headerTitle}</h3>
+              <p className="text-xs text-white/40 font-mono mt-0.5">
+                {otherUser ? `@${otherUser.username || "user"}` : `${memberCount} members`}
+              </p>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[10px] font-medium mt-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>{isGroup ? "Encrypted Group" : isOtherUserOnline ? "Online • Active now" : "Offline"}</span>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 gap-2 mb-6">
+              {!isGroup && otherUser && (
+                <>
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }} 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "voice")}
+                    className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all text-white/80 hover:text-white"
+                  >
+                    <Phone className="w-4 h-4 text-emerald-400 mb-1" />
+                    <span className="text-[11px] font-medium">Audio</span>
+                  </motion.button>
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }} 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "video")}
+                    className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all text-white/80 hover:text-white"
+                  >
+                    <Video className="w-4 h-4 text-indigo-400 mb-1" />
+                    <span className="text-[11px] font-medium">Video</span>
+                  </motion.button>
+                </>
+              )}
+            </div>
+
+            {/* Theme Swatches matching Framer canvas */}
+            <div className="mb-6">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 font-mono block mb-2.5">
+                Pick Chat Wallpaper
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: "doodle", label: "Doodle", color: "bg-[#005c4b]" },
+                  { id: "dots", label: "Dots", color: "bg-indigo-600" },
+                  { id: "grid", label: "Grid", color: "bg-cyan-600" },
+                  { id: "lines", label: "Lines", color: "bg-purple-600" },
+                  { id: "none", label: "OLED", color: "bg-zinc-900" },
+                ].map((swatch) => (
+                  <button
+                    key={swatch.id}
+                    onClick={() => setChatBgWallpaper(swatch.id as any)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-left text-xs transition-all ${
+                      chatBg === swatch.id
+                        ? "bg-white/[0.1] border-indigo-400/60 text-white font-medium shadow-sm"
+                        : "bg-white/[0.02] border-white/[0.05] text-white/60 hover:text-white hover:bg-white/[0.05]"
+                    }`}
+                  >
+                    <span className={`w-3 h-3 rounded-full ${swatch.color} shrink-0`} />
+                    <span className="text-[11px] truncate">{swatch.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Encryption Card from Framer canvas */}
+            <div className="p-3.5 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20 mb-6">
+              <div className="flex items-center gap-2 text-emerald-300 font-mono text-[10px] uppercase font-bold tracking-wider mb-1">
+                <Lock className="w-3.5 h-3.5" />
+                <span>Private & Encrypted</span>
+              </div>
+              <p className="text-[11.5px] text-white/70 leading-relaxed">
+                Messages and calls are end-to-end encrypted with zero server logs.
+              </p>
+            </div>
+
+            {/* Block / Safety Action */}
+            {!isGroup && otherUser && (
+              <div className="mt-auto pt-4 border-t border-white/[0.06]">
+                <Button
+                  variant="outline"
+                  className={`w-full text-xs font-semibold rounded-xl border transition-all ${
+                    isBlockedByMe 
+                      ? "bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30" 
+                      : "bg-white/[0.03] text-rose-400 border-white/[0.08] hover:bg-rose-500/10 hover:border-rose-500/30"
+                  }`}
+                  onClick={handleToggleBlock}
+                  disabled={blockLoading}
+                >
+                  <ShieldAlert className="w-3.5 h-3.5 mr-2" />
+                  {isBlockedByMe ? "Unblock Contact" : `Block ${headerTitle}`}
+                </Button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

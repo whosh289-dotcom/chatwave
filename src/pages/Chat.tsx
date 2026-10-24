@@ -2,12 +2,6 @@ import { useState } from "react";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatView from "@/components/ChatView";
 import NewConversationDialog from "@/components/NewConversationDialog";
-import { MessageSquare, ShieldCheck, Zap, Plus, Sparkles } from "lucide-react";
-
-import { useState } from "react";
-import ChatSidebar from "@/components/ChatSidebar";
-import ChatView from "@/components/ChatView";
-import NewConversationDialog from "@/components/NewConversationDialog";
 import { MessageSquare, ShieldCheck, Zap, Plus, Sparkles, Lock, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
