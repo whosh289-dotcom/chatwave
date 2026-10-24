@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -301,23 +302,35 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       )}
 
       {call?.status === "ringing-outgoing" && (
-        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white animate-in fade-in duration-200">
-          <div className="relative w-28 h-28 mb-6">
-            <span className="absolute inset-0 rounded-full bg-indigo-500/20 animate-ping"></span>
-            <Avatar className="h-28 w-28 rounded-full border-2 border-indigo-500/40 shadow-2xl">
-              <AvatarFallback className="bg-gradient-to-tr from-indigo-600 to-purple-600 text-white text-3xl font-heading font-bold">
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-white animate-in fade-in duration-300">
+          <div className="relative w-32 h-32 mb-8 flex items-center justify-center">
+            {/* Figma Smart Animate Pulsing Radar Waves */}
+            <motion.span 
+              animate={{ scale: [1, 1.6, 2.1], opacity: [0.6, 0.25, 0] }}
+              transition={{ repeat: Infinity, duration: 2.4, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute inset-0 rounded-full border border-indigo-400/40"
+            />
+            <motion.span 
+              animate={{ scale: [1, 1.35, 1.7], opacity: [0.7, 0.3, 0] }}
+              transition={{ repeat: Infinity, duration: 2.4, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute inset-0 rounded-full bg-indigo-500/15"
+            />
+            <Avatar className="h-28 w-28 rounded-full border-2 border-indigo-400/60 shadow-[0_0_40px_rgba(99,102,241,0.5)] z-10">
+              <AvatarFallback className="bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 text-white text-3xl font-heading font-bold">
                 {call.peerName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </div>
           <p className="text-2xl font-heading font-bold tracking-tight">{call.peerName}</p>
-          <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
+          <div className="flex items-center gap-2 mt-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-            <p className="text-xs text-white/60 font-medium">Connecting end-to-end…</p>
+            <p className="text-xs text-white/70 font-medium">Connecting end-to-end P2P…</p>
           </div>
-          <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full mt-12 shadow-xl hover:scale-105 transition-transform" onClick={() => endCall("ended")}>
-            <PhoneOff className="w-6 h-6" />
-          </Button>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full mt-12 shadow-[0_0_30px_rgba(244,63,94,0.4)]" onClick={() => endCall("ended")}>
+              <PhoneOff className="w-6 h-6" />
+            </Button>
+          </motion.div>
         </div>
       )}
 
@@ -358,9 +371,19 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
               <>
                 <audio ref={remoteVideoRef as any} autoPlay />
                 <div className="text-center">
-                  <div className="relative w-36 h-36 mx-auto mb-6">
-                    <span className="absolute inset-0 rounded-full bg-emerald-500/10 animate-pulse"></span>
-                    <Avatar className="h-36 w-36 rounded-full border-4 border-white/10 shadow-2xl">
+                  <div className="relative w-36 h-36 mx-auto mb-6 flex items-center justify-center">
+                    {/* Figma Smart Animate Active Audio Waves */}
+                    <motion.span 
+                      animate={{ scale: [1, 1.45, 1.8], opacity: [0.5, 0.2, 0] }}
+                      transition={{ repeat: Infinity, duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute inset-0 rounded-full border border-emerald-400/30"
+                    />
+                    <motion.span 
+                      animate={{ scale: [1, 1.25, 1.5], opacity: [0.6, 0.25, 0] }}
+                      transition={{ repeat: Infinity, duration: 2.2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute inset-0 rounded-full bg-emerald-500/10"
+                    />
+                    <Avatar className="h-36 w-36 rounded-full border-4 border-emerald-500/30 shadow-[0_0_50px_rgba(16,185,129,0.3)] z-10">
                       <AvatarFallback className="bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 text-white text-5xl font-heading font-bold">
                         {call.peerName.charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -373,37 +396,43 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
-          {/* Floating Call Action Controls (WhatsApp / FaceTime style) */}
+          {/* Floating Call Action Controls (Figma Smart Animate spring micro-interactions) */}
           <div className="p-6 bg-gradient-to-t from-black via-black/90 to-transparent flex items-center justify-center gap-5">
-            <Button 
-              size="icon" 
-              variant="secondary" 
-              className={`h-13 w-13 rounded-full transition-all border ${muted ? "bg-rose-500/20 text-rose-400 border-rose-500/40" : "bg-white/10 hover:bg-white/20 text-white border-white/15"}`} 
-              onClick={toggleMute}
-              title={muted ? "Unmute" : "Mute"}
-            >
-              {muted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-            </Button>
-            {call.type === "video" && (
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Button 
                 size="icon" 
                 variant="secondary" 
-                className={`h-13 w-13 rounded-full transition-all border ${cameraOff ? "bg-rose-500/20 text-rose-400 border-rose-500/40" : "bg-white/10 hover:bg-white/20 text-white border-white/15"}`} 
-                onClick={toggleCamera}
-                title={cameraOff ? "Turn Video On" : "Turn Video Off"}
+                className={`h-13 w-13 rounded-full transition-all border ${muted ? "bg-rose-500/20 text-rose-400 border-rose-500/40" : "bg-white/10 hover:bg-white/20 text-white border-white/15"}`} 
+                onClick={toggleMute}
+                title={muted ? "Unmute" : "Mute"}
               >
-                {cameraOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+                {muted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </Button>
+            </motion.div>
+            {call.type === "video" && (
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className={`h-13 w-13 rounded-full transition-all border ${cameraOff ? "bg-rose-500/20 text-rose-400 border-rose-500/40" : "bg-white/10 hover:bg-white/20 text-white border-white/15"}`} 
+                  onClick={toggleCamera}
+                  title={cameraOff ? "Turn Video On" : "Turn Video Off"}
+                >
+                  {cameraOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+                </Button>
+              </motion.div>
             )}
-            <Button 
-              size="icon" 
-              variant="destructive" 
-              className="h-14 w-14 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-[0_0_25px_rgba(244,63,94,0.4)] hover:scale-105 transition-transform" 
-              onClick={() => endCall("ended")}
-              title="End Call"
-            >
-              <PhoneOff className="w-6 h-6" />
-            </Button>
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button 
+                size="icon" 
+                variant="destructive" 
+                className="h-14 w-14 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-[0_0_25px_rgba(244,63,94,0.4)]" 
+                onClick={() => endCall("ended")}
+                title="End Call"
+              >
+                <PhoneOff className="w-6 h-6" />
+              </Button>
+            </motion.div>
           </div>
         </div>
       )}

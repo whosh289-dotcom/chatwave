@@ -734,9 +734,9 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           return (
             <motion.div 
               key={msg.id}
-              initial={{ opacity: 0, y: 8, scale: 0.99 }}
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              transition={{ type: "spring", stiffness: 420, damping: 28, mass: 0.8 }}
             >
               {showDateSep && (
                 <div className="flex items-center justify-center my-4">
@@ -950,18 +950,20 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               className={`flex-1 min-h-[38px] max-h-[160px] py-2 px-3 rounded-xl bg-black/45 text-white text-[13px] border border-white/[0.08] backdrop-blur-md placeholder:text-white/35 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 resize-none font-sans ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
             />
 
-            <Button
-              type="submit"
-              disabled={!newMessage.trim() || sending}
-              size="icon"
-              className={`h-9 w-9 rounded-xl shrink-0 transition-all ${
-                editingMsg 
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
-                  : 'glow-btn'
-              }`}
-            >
-              {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-3.5 h-3.5 ml-0.5" />}
-            </Button>
+            <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>
+              <Button
+                type="submit"
+                disabled={!newMessage.trim() || sending}
+                size="icon"
+                className={`h-9 w-9 rounded-xl shrink-0 transition-all ${
+                  editingMsg 
+                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
+                    : 'glow-btn'
+                }`}
+              >
+                {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-3.5 h-3.5 ml-0.5" />}
+              </Button>
+            </motion.div>
           </form>
         </div>
       )}

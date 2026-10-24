@@ -211,8 +211,8 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
           />
         </div>
 
-        {/* Framer-designed Filter Chips */}
-        <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto no-scrollbar py-0.5">
+        {/* Figma Smart Animate Filter Tabs */}
+        <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto no-scrollbar py-0.5 relative">
           {(
             [
               { id: "all", label: "All" },
@@ -226,17 +226,30 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
               <button
                 key={tab.id}
                 onClick={() => setFilterTab(tab.id)}
-                className={`relative px-2.5 py-1 rounded-full text-[11px] font-medium font-heading transition-all shrink-0 flex items-center gap-1.5 ${
-                  isActive
-                    ? "text-white bg-indigo-500/25 border border-indigo-500/40 shadow-[0_0_10px_rgba(99,102,241,0.25)]"
-                    : "text-white/50 hover:text-white/80 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05]"
+                className={`relative px-3 py-1 rounded-full text-[11px] font-medium font-heading transition-colors shrink-0 flex items-center gap-1.5 z-10 ${
+                  isActive ? "text-white font-semibold" : "text-white/50 hover:text-white/80"
                 }`}
               >
-                {tab.label}
+                {isActive && (
+                  <motion.div
+                    layoutId="figma-active-tab-pill"
+                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    className="absolute inset-0 bg-indigo-500/25 border border-indigo-500/40 rounded-full shadow-[0_0_12px_rgba(99,102,241,0.25)] -z-10"
+                  />
+                )}
+                {!isActive && (
+                  <div className="absolute inset-0 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] rounded-full -z-10" />
+                )}
+                <span>{tab.label}</span>
                 {tab.count !== undefined && tab.count > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-indigo-500 text-white text-[9px] font-bold flex items-center justify-center">
+                  <motion.span 
+                    initial={{ scale: 0 }} 
+                    animate={{ scale: 1 }} 
+                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                    className="w-4 h-4 rounded-full bg-indigo-500 text-white text-[9px] font-bold flex items-center justify-center shadow-sm"
+                  >
                     {tab.count}
-                  </span>
+                  </motion.span>
                 )}
               </button>
             );
