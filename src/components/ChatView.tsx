@@ -9,7 +9,7 @@ import {
   Send, ArrowLeft, FilePenLine, Lock, Settings, Smile, ImageIcon,
   Reply, Trash2, X, MoreVertical, Check, CheckCheck, Forward,
   Phone, Video, Bell, Search, ArrowDown, Copy, Pin, Users, Camera,
-  ShieldAlert, UserX, Loader2, Info
+  ShieldAlert, UserX, Loader2, Info, Code2, ChevronDown, ChevronUp, FileCode
 } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import GroupSettingsDialog from "@/components/GroupSettingsDialog";
@@ -53,12 +53,80 @@ interface ChatViewProps {
 
 const QUICK_REACTIONS = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
 
+const detectLanguage = (code: string): string => {
+  const trimmed = code.trim();
+  if (trimmed.startsWith("/**") || trimmed.includes("#include") || trimmed.includes("pinMode") || trimmed.includes("Serial.") || trimmed.includes("digitalWrite")) {
+    return trimmed.includes("ESP") || trimmed.includes("WiFi") || trimmed.includes("pinMode") ? "C++ / Arduino" : "C / C++";
+  }
+  if (/^[A-Z]:\\[^\n]+(\.cpp|\.h|\.ino|\.ts|\.js|\.py)/m.test(trimmed) || trimmed.includes("AppData\\Local\\Temp") || trimmed.includes("error:") || trimmed.includes("compilation terminated")) {
+    return "Build / Compiler Trace";
+  }
+  if (trimmed.startsWith("import ") || trimmed.includes("from '") || trimmed.includes("from \"") || trimmed.includes("interface ") || trimmed.includes("export default") || trimmed.includes("export const")) {
+    return "TypeScript";
+  }
+  if (trimmed.includes("function ") || trimmed.includes("const ") || trimmed.includes("console.log") || trimmed.includes("document.get")) {
+    return "JavaScript";
+  }
+  if (trimmed.startsWith("def ") || trimmed.includes("import os") || trimmed.includes("print(") || (trimmed.includes("class ") && trimmed.includes(":"))) {
+    return "Python";
+  }
+  if ((trimmed.startsWith("{") && trimmed.endsWith("}") && trimmed.includes('":')) || (trimmed.startsWith("[") && trimmed.endsWith("]") && trimmed.includes('":'))) {
+    return "JSON";
+  }
+  if (/^(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)\b/i.test(trimmed)) {
+    return "SQL";
+  }
+  if (trimmed.includes("<html") || trimmed.includes("</div>") || trimmed.includes("<!DOCTYPE") || trimmed.includes("<svg")) {
+    return "HTML / XML";
+  }
+  return "Code Snippet";
+};
+
+const isLikelyCode = (text: string): boolean => {
+  if (!text) return false;
+  const trimmed = text.trim();
+  if (trimmed.startsWith("/**") || trimmed.startsWith("/*") || trimmed.startsWith("#include") || trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<?php")) {
+    return true;
+  }
+  if (/^[A-Z]:\\[^\n]+(\.cpp|\.h|\.ino|\.ts|\.js|\.py)/m.test(trimmed) || trimmed.includes("AppData\\Local\\Temp") || trimmed.includes("compilation terminated")) {
+    return true;
+  }
+  const lines = trimmed.split("\n");
+  if (lines.length >= 4) {
+    const codeIndicators = [
+      /[{};]$/,
+      /^\s*(import|export|const|let|var|function|class|def|public|private|void|int|float|double|char|bool|return|if|for|while)\b/,
+      /\b(console\.log|printf|Serial\.print|std::cout|System\.out|pinMode|digitalWrite|analogRead|setup\(\)|loop\(\))\b/,
+      /^[A-Z]:\\/
+    ];
+    let score = 0;
+    for (const line of lines.slice(0, 30)) {
+      for (const regex of codeIndicators) {
+        if (regex.test(line)) {
+          score++;
+          break;
+        }
+      }
+    }
+    if (score >= 3 || (lines.length > 8 && score >= 2)) return true;
+  }
+  return false;
+};
+
+const isSingleLineShortText = (content: string): boolean => {
+  if (!content) return false;
+  const trimmed = content.trim();
+  if (trimmed.length > 45 || trimmed.includes("\n") || trimmed.includes("```")) return false;
+  if (isLikelyCode(trimmed)) return false;
+  return true;
+};
+
 const CopyCodeButton = ({ code }: { code: string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
-    toast.success("Code copied with original formatting!");
+    toast.success("Code copied with formatting!");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -66,8 +134,8 @@ const CopyCodeButton = ({ code }: { code: string }) => {
     <button
       onClick={handleCopy}
       type="button"
-      className="absolute top-2 right-2 px-2 py-1 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white rounded-md text-[10px] font-mono flex items-center gap-1 transition-all backdrop-blur-md border border-white/10 shadow-sm"
-      title="Copy raw code with indentation"
+      className="px-2.5 py-1 bg-white/10 hover:bg-white/20 active:scale-95 text-white/90 hover:text-white rounded-lg text-[10.5px] font-mono flex items-center gap-1.5 transition-all backdrop-blur-md border border-white/15 shadow-sm cursor-pointer select-none"
+      title="Copy raw code snippet"
     >
       {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
       <span>{copied ? "Copied" : "Copy"}</span>
@@ -75,41 +143,139 @@ const CopyCodeButton = ({ code }: { code: string }) => {
   );
 };
 
-const renderMarkdown = (text: string) => {
-  // If user wrapped in triple backticks
-  if (text.includes('```')) {
-    const parts = text.split(/(```[\s\S]*?```)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('```') && part.endsWith('```')) {
-        const code = part.slice(3, -3).replace(/^\w+\n/, '');
-        return (
-          <div key={i} className="relative group/code my-2">
-            <pre className="bg-black/50 rounded-xl p-3 text-xs font-mono overflow-x-auto whitespace-pre border border-white/10 text-emerald-300 shadow-inner">
-              <code>{code}</code>
-            </pre>
-            <CopyCodeButton code={code} />
-          </div>
-        );
-      }
-      return <span key={i} className="whitespace-pre-wrap">{renderInlineMarkdown(part)}</span>;
-    });
-  }
+const CodeCard = ({ code, language }: { code: string; language?: string }) => {
+  const [expanded, setExpanded] = useState(false);
+  const trimmed = code.trim();
+  const lines = trimmed.split("\n");
+  const lineCount = lines.length;
+  const isLarge = lineCount > 12 || trimmed.length > 500;
+  const lang = language || detectLanguage(trimmed);
+  const sizeKb = (new Blob([trimmed]).size / 1024).toFixed(1) + " KB";
 
-  return renderInlineMarkdown(text);
+  return (
+    <div className="relative group/code my-1.5 w-full rounded-2xl overflow-hidden border border-white/15 bg-[#080b12]/95 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-2xl text-left select-text">
+      {/* Top Header Bar */}
+      <div className="px-3 py-2 bg-white/[0.05] border-b border-white/10 flex items-center justify-between text-xs select-none">
+        <div className="flex items-center gap-2 min-w-0">
+          <FileCode className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+          <span className="font-mono text-[11px] font-semibold text-white/90 truncate">{lang}</span>
+          <span className="text-[10px] font-mono text-white/50 bg-white/[0.06] px-2 py-0.5 rounded-full border border-white/5 shrink-0">
+            {lineCount} {lineCount === 1 ? 'line' : 'lines'} • {sizeKb}
+          </span>
+        </div>
+        <CopyCodeButton code={trimmed} />
+      </div>
+
+      {/* Code Content Viewport */}
+      <div className={`relative transition-all duration-300 ease-out ${
+        isLarge && !expanded ? "max-h-[250px] overflow-hidden" : "max-h-[520px] overflow-auto"
+      } overflow-x-auto custom-scrollbar p-3.5 font-mono text-[11.5px] leading-relaxed text-emerald-300/95`}>
+        <pre className="whitespace-pre">
+          <code>{trimmed}</code>
+        </pre>
+        {isLarge && !expanded && (
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#080b12] to-transparent pointer-events-none" />
+        )}
+      </div>
+
+      {/* Expand / Collapse Button if Large */}
+      {isLarge && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="w-full py-1.5 px-3 bg-white/[0.03] hover:bg-white/[0.08] active:bg-white/[0.12] border-t border-white/10 text-white/75 hover:text-white text-[11px] font-mono flex items-center justify-center gap-1.5 transition-colors cursor-pointer select-none"
+        >
+          {expanded ? (
+            <>
+              <ChevronUp className="w-3.5 h-3.5 text-indigo-300" />
+              <span>Collapse snippet</span>
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-3.5 h-3.5 text-indigo-300" />
+              <span>Show full snippet ({lineCount} lines • {sizeKb})</span>
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
 };
 
 const renderInlineMarkdown = (text: string) => {
   const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|~.*?~|`.*?`|https?:\/\/\S+)/g);
   return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith('*') && part.endsWith('*')) return <em key={i}>{part.slice(1, -1)}</em>;
-    if (part.startsWith('~') && part.endsWith('~')) return <del key={i}>{part.slice(1, -1)}</del>;
-    if (part.startsWith('`') && part.endsWith('`')) return <code key={i} className="bg-black/20 rounded px-1 py-0.5 text-xs font-mono">{part.slice(1, -1)}</code>;
+    if (part.startsWith('**') && part.endsWith('**')) return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
+    if (part.startsWith('*') && part.endsWith('*')) return <em key={i} className="italic">{part.slice(1, -1)}</em>;
+    if (part.startsWith('~') && part.endsWith('~')) return <del key={i} className="line-through opacity-70">{part.slice(1, -1)}</del>;
+    if (part.startsWith('`') && part.endsWith('`')) return <code key={i} className="bg-black/30 rounded px-1.5 py-0.5 text-xs font-mono text-emerald-300 border border-white/10">{part.slice(1, -1)}</code>;
     if (part.match(/^https?:\/\/\S+$/)) {
-      return <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline text-blue-300 hover:text-blue-200 break-all">{part}</a>;
+      return <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline text-cyan-300 hover:text-cyan-200 break-all">{part}</a>;
     }
     return <span key={i}>{part}</span>;
   });
+};
+
+const ExpandableText = ({ text }: { text: string }) => {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > 700 || text.split("\n").length > 14;
+
+  if (!isLong) {
+    return <span className="whitespace-pre-wrap">{renderInlineMarkdown(text)}</span>;
+  }
+
+  return (
+    <div className="space-y-1">
+      <div className={`relative transition-all duration-200 ${!expanded ? "max-h-[240px] overflow-hidden" : "max-h-[550px] overflow-y-auto custom-scrollbar"}`}>
+        <span className="whitespace-pre-wrap">{renderInlineMarkdown(text)}</span>
+        {!expanded && (
+          <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="text-[11px] font-mono text-cyan-300 hover:text-cyan-200 flex items-center gap-1 mt-1 transition-colors select-none font-medium cursor-pointer"
+      >
+        {expanded ? (
+          <>
+            <ChevronUp className="w-3 h-3" /> Show less
+          </>
+        ) : (
+          <>
+            <ChevronDown className="w-3 h-3" /> Read more ({text.length} chars)
+          </>
+        )}
+      </button>
+    </div>
+  );
+};
+
+const renderMarkdown = (text: string) => {
+  if (!text) return null;
+
+  // If user wrapped in triple backticks
+  if (text.includes('```')) {
+    const parts = text.split(/(```[\s\S]*?```)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('```') && part.endsWith('```')) {
+        const raw = part.slice(3, -3);
+        const matchLang = raw.match(/^([a-zA-Z0-9+#_.-]+)\n/);
+        const lang = matchLang ? matchLang[1] : undefined;
+        const code = lang ? raw.slice(matchLang[0].length) : raw;
+        return <CodeCard key={i} code={code} language={lang} />;
+      }
+      if (!part.trim()) return null;
+      return <ExpandableText key={i} text={part} />;
+    });
+  }
+
+  // If unformatted text is detected as source code / error log / firmware sketch
+  if (isLikelyCode(text)) {
+    return <CodeCard code={text} />;
+  }
+
+  return <ExpandableText text={text} />;
 };
 
 const formatDateSeparator = (dateStr: string) => {
@@ -825,7 +991,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   </div>
                 )}
 
-                <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[85%] md:max-w-[75%]`}>
                   {!isMe && showAvatar && isGroup && <span className="text-[10px] font-mono text-white/50 mb-1 ml-1">{senderName}</span>}
 
                   <motion.div 
@@ -840,7 +1006,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
                     style={{ transformPerspective: 800, transformOrigin: isMe ? "right center" : "left center" }}
-                    className={`relative min-w-[76px] transition-all ${
+                    className={`relative min-w-fit transition-all ${
                       isMe 
                         ? 'chat-bubble-sent' 
                         : 'chat-bubble-received'
@@ -904,12 +1070,32 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                           )}
                         </div>
                       </div>
+                    ) : isSingleLineShortText(msg.content) ? (
+                      <div className="flex items-end gap-2.5 min-w-0">
+                        <span className="text-[13.5px] leading-snug break-words flex-1 min-w-0">
+                          {renderInlineMarkdown(msg.content)}
+                        </span>
+                        <div className={`inline-flex items-center gap-1 shrink-0 text-[10px] font-mono select-none self-end pb-0.5 ml-auto ${isMe ? 'text-white/75' : 'text-white/45'}`}>
+                          <span>{format(new Date(msg.created_at), "HH:mm")}</span>
+                          {msg.edited && <span className="italic text-[9px] text-white/50">edited</span>}
+                          {isMe && !msg.id.startsWith("temp-") && (
+                            new Date(msg.created_at).getTime() <= maxReadTime ? (
+                              <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
+                            ) : (
+                              <Check className="w-3 h-3 opacity-60" />
+                            )
+                          )}
+                          {msg.id.startsWith("temp-") && (
+                            <span className="opacity-40 font-mono">sending…</span>
+                          )}
+                        </div>
+                      </div>
                     ) : (
-                      <div className="flex flex-wrap items-baseline justify-between gap-x-2.5 gap-y-0.5">
-                        <div className="text-[13.5px] leading-snug break-words whitespace-pre-wrap flex-1 min-w-[20px]">
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <div className="text-[13.5px] leading-relaxed break-words">
                           {renderMarkdown(msg.content)}
                         </div>
-                        <div className={`inline-flex items-center gap-1 shrink-0 text-[10px] font-mono select-none self-end pb-0.5 ml-auto ${isMe ? 'text-white/75' : 'text-white/45'}`}>
+                        <div className={`inline-flex items-center gap-1 shrink-0 text-[10px] font-mono select-none self-end ml-auto pt-0.5 ${isMe ? 'text-white/75' : 'text-white/45'}`}>
                           <span>{format(new Date(msg.created_at), "HH:mm")}</span>
                           {msg.edited && <span className="italic text-[9px] text-white/50">edited</span>}
                           {isMe && !msg.id.startsWith("temp-") && (
