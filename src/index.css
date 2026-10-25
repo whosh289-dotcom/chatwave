@@ -319,3 +319,19 @@
 .chat-bg-none {
   background-color: rgba(9, 12, 20, 0.48);
 }
+
+/* 3D Perspective and Spatial Utilities */
+.perspective-800 { perspective: 800px; }
+.perspective-1000 { perspective: 1000px; }
+.perspective-1200 { perspective: 1200px; }
+.preserve-3d { transform-style: preserve-3d; }
+.backface-hidden { backface-visibility: hidden; }
+
+/* 3D Interactive Card & Bubble Lighting */
+.shadow-3d-bubble {
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.shadow-3d-sent {
+  box-shadow: 0 10px 28px -4px rgba(99, 102, 241, 0.45), 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px 0 rgba(255, 255, 255, 0.45);
+}

@@ -193,12 +193,22 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
           </DropdownMenu>
 
           <div className="flex gap-1.5 items-center">
-            <motion.div whileHover={{ scale: 1.15, rotate: 45 }} whileTap={{ scale: 0.9 }}>
+            <motion.div 
+              whileHover={{ scale: 1.15, rotateY: 180, rotateZ: 45 }} 
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 350, damping: 20 }}
+              style={{ transformStyle: "preserve-3d" }}
+            >
               <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)} className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" title="Settings">
                 <Settings className="w-3.5 h-3.5" />
               </Button>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }}>
+            <motion.div 
+              whileHover={{ scale: 1.15, rotateZ: 90, rotateY: 30 }} 
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 350, damping: 20 }}
+              style={{ transformStyle: "preserve-3d" }}
+            >
               <Button variant="ghost" size="icon" onClick={onNewConversation} className="h-8 w-8 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-500/30 shadow-[0_0_12px_rgba(99,102,241,0.2)] transition-all" title="New conversation">
                 <Plus className="w-4 h-4" />
               </Button>
@@ -268,7 +278,7 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
       <ConversationInvites onAccepted={(id) => { onSelectConversation(id); fetchConversations(); }} />
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
+      <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1 perspective-1000">
         {filtered.length === 0 ? (
           <div className="p-8 text-center text-white/40">
             <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center">
@@ -286,9 +296,19 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
               <ContextMenu key={conv.id}>
                 <ContextMenuTrigger asChild>
                   <motion.button
-                    whileHover={{ x: 4, scale: 1.012 }}
-                    whileTap={{ scale: 0.985 }}
-                    transition={{ type: "spring", stiffness: 450, damping: 28 }}
+                    whileHover={{ 
+                      x: 5, 
+                      scale: 1.018, 
+                      rotateY: -3.5, 
+                      rotateX: 1.5, 
+                      z: 14,
+                      boxShadow: isSelected
+                        ? "0 16px 36px -4px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.3)"
+                        : "0 12px 28px -4px rgba(0,0,0,0.6), 0 0 16px rgba(99,102,241,0.18)"
+                    }}
+                    whileTap={{ scale: 0.98, z: -4, rotateY: 0, rotateX: 0 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 24 }}
+                    style={{ transformStyle: "preserve-3d" }}
                     onClick={() => onSelectConversation(conv.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left border ${
                       isSelected

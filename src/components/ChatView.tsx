@@ -749,14 +749,14 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       <div 
         ref={scrollAreaRef} 
         onScroll={handleScroll} 
-        className={`flex-1 overflow-y-auto px-4 py-3 transition-colors duration-300 ${
+        className={`flex-1 overflow-y-auto px-4 py-3 perspective-1200 transition-colors duration-300 ${
           chatBg === "doodle" ? "chat-bg-doodle" :
           chatBg === "dots" ? "chat-bg-dots" :
           chatBg === "grid" ? "chat-bg-grid" :
           chatBg === "lines" ? "chat-bg-lines" : "chat-bg-none"
         }`}
       >
-        <div className="max-w-4xl mx-auto w-full space-y-3">
+        <div className="max-w-4xl mx-auto w-full space-y-3 preserve-3d">
           {/* Framer-inspired Encrypted Header Pill */}
           <div className="flex items-center justify-center my-2 select-none">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/50 border border-white/[0.08] backdrop-blur-md text-[10.5px] font-mono text-amber-300/80 shadow-sm select-none">
@@ -793,9 +793,10 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           return (
             <motion.div 
               key={msg.id}
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ type: "spring", stiffness: 420, damping: 28, mass: 0.8 }}
+              initial={{ opacity: 0, y: 14, rotateX: 20, rotateY: isMe ? -6 : 6, z: -25 }}
+              animate={{ opacity: 1, y: 0, rotateX: 0, rotateY: 0, z: 0 }}
+              transition={{ type: "spring", stiffness: 380, damping: 26, mass: 0.8 }}
+              style={{ transformStyle: "preserve-3d" }}
             >
               {showDateSep && (
                 <div className="flex items-center justify-center my-4 select-none">
@@ -820,11 +821,24 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                 <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
                   {!isMe && showAvatar && isGroup && <span className="text-[10px] font-mono text-white/50 mb-1 ml-1">{senderName}</span>}
 
-                  <div className={`relative min-w-[76px] transition-all ${
-                    isMe 
-                      ? 'chat-bubble-sent' 
-                      : 'chat-bubble-received'
-                  }`}>
+                  <motion.div 
+                    whileHover={{ 
+                      rotateX: isMe ? 2.5 : -2.5, 
+                      rotateY: isMe ? -5 : 5, 
+                      z: 16,
+                      scale: 1.015,
+                      boxShadow: isMe 
+                        ? "0 20px 35px -8px rgba(79, 70, 229, 0.45), 0 0 20px rgba(129, 140, 248, 0.3)" 
+                        : "0 20px 35px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 255, 255, 0.08)"
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                    style={{ transformStyle: "preserve-3d" }}
+                    className={`relative min-w-[76px] transition-all ${
+                      isMe 
+                        ? 'chat-bubble-sent' 
+                        : 'chat-bubble-received'
+                    }`}
+                  >
                     {/* Reply preview */}
                     {msg.reply_to_id && (() => {
                       const repliedMsg = messages.find(m => m.id === msg.reply_to_id);
@@ -840,12 +854,17 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
                     {/* Floating Reaction Bar (Quick Emojis) */}
                     {!msg.id.startsWith("temp-") && (
-                      <div className={`absolute -top-7 ${isMe ? 'right-0' : 'left-0'} flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0d0f18]/95 backdrop-blur-2xl border border-white/10 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-150 z-20 pointer-events-none group-hover:pointer-events-auto select-none`}>
+                      <motion.div 
+                        initial={{ opacity: 0, y: 8, rotateX: -30, z: -20 }}
+                        whileHover={{ z: 35 }}
+                        className={`absolute -top-7 ${isMe ? 'right-0' : 'left-0'} flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0d0f18]/95 backdrop-blur-2xl border border-white/15 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 pointer-events-none group-hover:pointer-events-auto select-none`}
+                        style={{ transformStyle: "preserve-3d" }}
+                      >
                         {QUICK_REACTIONS.map((emoji) => (
                           <motion.button
                             key={emoji}
-                            whileHover={{ scale: 1.45, y: -2 }}
-                            whileTap={{ scale: 0.85 }}
+                            whileHover={{ scale: 1.5, z: 30, rotateY: 18, rotateX: -12, y: -4 }}
+                            whileTap={{ scale: 0.85, z: 0 }}
                             transition={{ type: "spring", stiffness: 500, damping: 20 }}
                             onClick={() => toggleReaction(msg.id, emoji)}
                             className="text-xs p-0.5 hover:bg-white/15 rounded-full transition-colors cursor-pointer"
@@ -854,7 +873,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                             {emoji}
                           </motion.button>
                         ))}
-                      </div>
+                      </motion.div>
                     )}
 
                     {msg.gif_url ? (
@@ -934,33 +953,36 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
                     {/* Message actions (hover) */}
                     {!msg.id.startsWith("temp-") && (
-                      <div className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-[#0c0d14]/90 backdrop-blur-2xl rounded-full border border-white/10 p-0.5 shadow-2xl z-10 select-none`}>
-                        <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Reply">
+                      <div 
+                        className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-[#0c0d14]/90 backdrop-blur-2xl rounded-full border border-white/10 p-0.5 shadow-2xl z-10 select-none`}
+                        style={{ transformStyle: "preserve-3d" }}
+                      >
+                        <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Reply">
                           <Reply className="w-3.5 h-3.5" />
                         </motion.button>
-                        <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => setForwardMsg(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Forward">
+                        <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => setForwardMsg(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Forward">
                           <Forward className="w-3.5 h-3.5" />
                         </motion.button>
-                        <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => copyMessage(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Copy">
+                        <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => copyMessage(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Copy">
                           <Copy className="w-3.5 h-3.5" />
                         </motion.button>
                         {isMe && (
                           <>
-                            <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => {
+                            <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => {
                               setEditingMsg(msg);
                               setNewMessage(msg.content);
                               messageInputRef.current?.focus();
                             }} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Edit">
                               <FilePenLine className="w-3.5 h-3.5" />
                             </motion.button>
-                            <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => setDeleteConfirm(msg)} className="p-1.5 hover:bg-rose-500/20 text-rose-400 rounded-full transition-colors" title="Delete">
+                            <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => setDeleteConfirm(msg)} className="p-1.5 hover:bg-rose-500/20 text-rose-400 rounded-full transition-colors" title="Delete">
                               <Trash2 className="w-3.5 h-3.5" />
                             </motion.button>
                           </>
                         )}
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 </div>
               </div>
             </motion.div>
