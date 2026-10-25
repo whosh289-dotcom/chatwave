@@ -135,24 +135,26 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
         <div className="flex items-center justify-between mb-3.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-xl border border-white/[0.08] hover:border-white/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.2)] transition-all backdrop-blur-md">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/30 to-purple-500/25 border border-white/15 flex items-center justify-center p-0.5 shadow-sm">
-                  <Avatar className="w-full h-full rounded-[6px]">
-                    <AvatarFallback className="bg-transparent text-indigo-200 font-semibold font-heading text-xs">
-                      {(user?.username || (user as any)?.displayName || "?")[0]?.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                <div className="flex flex-col items-start text-left">
-                  <span className="text-[13px] font-semibold font-heading text-white tracking-tight leading-tight flex items-center gap-1.5">
-                    {user?.username || (user as any)?.displayName || "Account"}
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"></span>
-                  </span>
-                  <span className="text-[10px] text-white/45 font-medium tracking-wide">
-                    Switch profile
-                  </span>
-                </div>
-              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button variant="ghost" className="flex items-center gap-2.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-xl border border-white/[0.08] hover:border-white/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.2)] transition-all backdrop-blur-md">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/30 to-purple-500/25 border border-white/15 flex items-center justify-center p-0.5 shadow-sm">
+                    <Avatar className="w-full h-full rounded-[6px]">
+                      <AvatarFallback className="bg-transparent text-indigo-200 font-semibold font-heading text-xs">
+                        {(user?.username || (user as any)?.displayName || "?")[0]?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div className="flex flex-col items-start text-left">
+                    <span className="text-[13px] font-semibold font-heading text-white tracking-tight leading-tight flex items-center gap-1.5">
+                      {user?.username || (user as any)?.displayName || "Account"}
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"></span>
+                    </span>
+                    <span className="text-[10px] text-white/45 font-medium tracking-wide">
+                      Switch profile
+                    </span>
+                  </div>
+                </Button>
+              </motion.div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 p-1.5 rounded-xl border border-white/10 bg-[#0c0d15]/95 backdrop-blur-2xl shadow-2xl">
               <DropdownMenuLabel className="text-[10px] text-white/50 font-semibold uppercase tracking-wider mb-1 px-2 py-1">
@@ -191,12 +193,16 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
           </DropdownMenu>
 
           <div className="flex gap-1.5 items-center">
-            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)} className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" title="Settings">
-              <Settings className="w-3.5 h-3.5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={onNewConversation} className="h-8 w-8 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-500/30 shadow-[0_0_12px_rgba(99,102,241,0.2)] transition-all" title="New conversation">
-              <Plus className="w-4 h-4" />
-            </Button>
+            <motion.div whileHover={{ scale: 1.15, rotate: 45 }} whileTap={{ scale: 0.9 }}>
+              <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)} className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" title="Settings">
+                <Settings className="w-3.5 h-3.5" />
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }}>
+              <Button variant="ghost" size="icon" onClick={onNewConversation} className="h-8 w-8 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-500/30 shadow-[0_0_12px_rgba(99,102,241,0.2)] transition-all" title="New conversation">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </motion.div>
           </div>
         </div>
 
@@ -223,8 +229,10 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
           ).map((tab) => {
             const isActive = filterTab === tab.id;
             return (
-              <button
+              <motion.button
                 key={tab.id}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
                 onClick={() => setFilterTab(tab.id)}
                 className={`relative px-3 py-1 rounded-full text-[11px] font-medium font-heading transition-colors shrink-0 flex items-center gap-1.5 z-10 ${
                   isActive ? "text-white font-semibold" : "text-white/50 hover:text-white/80"
@@ -251,7 +259,7 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                     {tab.count}
                   </motion.span>
                 )}
-              </button>
+              </motion.button>
             );
           })}
         </div>
@@ -278,9 +286,9 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
               <ContextMenu key={conv.id}>
                 <ContextMenuTrigger asChild>
                   <motion.button
-                    whileHover={{ x: 2, scale: 1.008 }}
-                    whileTap={{ scale: 0.992 }}
-                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                    whileHover={{ x: 4, scale: 1.012 }}
+                    whileTap={{ scale: 0.985 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 28 }}
                     onClick={() => onSelectConversation(conv.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left border ${
                       isSelected
@@ -289,7 +297,7 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                     }`}
                   >
                     <div className="relative shrink-0">
-                      <Avatar className={`h-9 w-9 rounded-lg border p-0.5 bg-gradient-to-tr ${avatarGrad}`}>
+                      <Avatar className={`h-9 w-9 rounded-lg border p-0.5 bg-gradient-to-tr ${avatarGrad} transition-transform group-hover:scale-105`}>
                         {conv.logo_url ? (
                           <AvatarImage src={conv.logo_url} alt={displayName} className="object-cover rounded-[6px]" />
                         ) : null}
@@ -298,7 +306,10 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                         </AvatarFallback>
                       </Avatar>
                       {conv.unread > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)] border-2 border-[#090a10]" />
+                        <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)] border-2 border-[#090a10]"></span>
+                        </span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -322,9 +333,13 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                           {conv.lastMessage?.content || "No messages yet"}
                         </p>
                         {conv.unread > 0 && (
-                          <span className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-[10px] font-mono font-bold rounded-full h-4 min-w-4 px-1.5 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(99,102,241,0.5)]">
+                          <motion.span 
+                            animate={{ scale: [1, 1.12, 1] }}
+                            transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+                            className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-[10px] font-mono font-bold rounded-full h-4 min-w-4 px-1.5 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+                          >
                             {conv.unread > 99 ? "99+" : conv.unread}
-                          </span>
+                          </motion.span>
                         )}
                       </div>
                     </div>

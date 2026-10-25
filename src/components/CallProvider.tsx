@@ -290,12 +290,21 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
               </p>
             </div>
             <div className="flex justify-center gap-6 pt-2">
-              <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full shadow-lg hover:scale-105 transition-transform" onClick={() => endCall("declined")}>
-                <PhoneOff className="w-6 h-6" />
-              </Button>
-              <Button size="icon" className="h-14 w-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:scale-105 transition-transform" onClick={acceptCall}>
-                {call.type === "video" ? <Video className="w-6 h-6" /> : <Phone className="w-6 h-6" />}
-              </Button>
+              <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
+                <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full shadow-lg" onClick={() => endCall("declined")}>
+                  <PhoneOff className="w-6 h-6" />
+                </Button>
+              </motion.div>
+              <motion.div 
+                whileHover={{ scale: 1.15 }} 
+                whileTap={{ scale: 0.9 }}
+                animate={{ scale: [1, 1.08, 1] }}
+                transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
+              >
+                <Button size="icon" className="h-14 w-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_25px_rgba(16,185,129,0.5)]" onClick={acceptCall}>
+                  {call.type === "video" ? <Video className="w-6 h-6" /> : <Phone className="w-6 h-6" />}
+                </Button>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -324,7 +333,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           <p className="text-2xl font-heading font-bold tracking-tight">{call.peerName}</p>
           <div className="flex items-center gap-2 mt-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-            <p className="text-xs text-white/70 font-medium">Connecting end-to-end P2P…</p>
+            <p className="text-xs text-white/70 font-medium">Connecting end-to-end call…</p>
           </div>
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full mt-12 shadow-[0_0_30px_rgba(244,63,94,0.4)]" onClick={() => endCall("ended")}>
@@ -354,7 +363,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 backdrop-blur-md">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[11px] font-mono text-white/70">Encrypted P2P</span>
+              <span className="text-[11px] font-mono text-white/70">End-to-End Encrypted</span>
             </div>
           </div>
 

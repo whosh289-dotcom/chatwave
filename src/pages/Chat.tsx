@@ -132,7 +132,7 @@ const Chat = () => {
                       whileHover={{ scale: 1.05, y: -2 }}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-emerald-500/40 text-[11.5px] text-white/80 font-medium transition-colors shadow-sm"
                     >
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> End-to-End P2P
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> End-to-End Encrypted
                     </motion.span>
                     <motion.span
                       whileHover={{ scale: 1.05, y: -2 }}

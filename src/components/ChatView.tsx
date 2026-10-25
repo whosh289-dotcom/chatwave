@@ -163,6 +163,34 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
     toast.success(`Wallpaper updated`);
   };
 
+  useEffect(() => {
+    if (!conversationId) return;
+    try {
+      const stored = localStorage.getItem(`chatwave_reactions_${conversationId}`);
+      if (stored) setReactions(JSON.parse(stored));
+      else setReactions({});
+    } catch {}
+  }, [conversationId]);
+
+  const toggleReaction = (messageId: string, emoji: string) => {
+    if (!user) return;
+    setReactions(prev => {
+      const current = prev[messageId] || [];
+      const existingIdx = current.findIndex(r => r.user_id === user.id && r.emoji === emoji);
+      let updated: Reaction[];
+      if (existingIdx >= 0) {
+        updated = current.filter((_, idx) => idx !== existingIdx);
+      } else {
+        updated = [...current, { id: crypto.randomUUID(), emoji, user_id: user.id }];
+      }
+      const next = { ...prev, [messageId]: updated };
+      try {
+        localStorage.setItem(`chatwave_reactions_${conversationId}`, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -591,54 +619,64 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         <div className="flex items-center gap-1">
           {!isGroup && otherUser && (
             <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-emerald-400 border border-white/[0.06] transition-all disabled:opacity-40"
-                onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "voice")}
-                title={isBlockedByMe || isBlockedByThem ? "Call unavailable (blocked)" : "Voice Call"}
-                disabled={isBlockedByMe || isBlockedByThem}
-              >
-                <Phone className="w-3.5 h-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-indigo-300 border border-white/[0.06] transition-all disabled:opacity-40"
-                onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "video")}
-                title={isBlockedByMe || isBlockedByThem ? "Call unavailable (blocked)" : "Video Call"}
-                disabled={isBlockedByMe || isBlockedByThem}
-              >
-                <Video className="w-3.5 h-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-8 w-8 rounded-lg border transition-all ${
-                  isBlockedByMe
-                    ? "bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30"
-                    : "text-white/70 hover:text-rose-400 border-white/[0.06] hover:bg-white/[0.08]"
-                }`}
-                onClick={handleToggleBlock}
-                title={isBlockedByMe ? "Unblock contact" : "Block contact"}
-                disabled={blockLoading}
-              >
-                {blockLoading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                )}
-              </Button>
+              <motion.div whileHover={{ scale: 1.12, y: -1 }} whileTap={{ scale: 0.92 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-emerald-400 border border-white/[0.06] transition-all disabled:opacity-40"
+                  onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "voice")}
+                  title={isBlockedByMe || isBlockedByThem ? "Call unavailable (blocked)" : "Voice Call"}
+                  disabled={isBlockedByMe || isBlockedByThem}
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.12, y: -1 }} whileTap={{ scale: 0.92 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-indigo-300 border border-white/[0.06] transition-all disabled:opacity-40"
+                  onClick={() => startCall(conversationId, otherUser.user_id, participantNames[otherUser.user_id] || "User", "video")}
+                  title={isBlockedByMe || isBlockedByThem ? "Call unavailable (blocked)" : "Video Call"}
+                  disabled={isBlockedByMe || isBlockedByThem}
+                >
+                  <Video className="w-3.5 h-3.5" />
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.1, y: -1 }} whileTap={{ scale: 0.92 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`h-8 w-8 rounded-lg border transition-all ${
+                    isBlockedByMe
+                      ? "bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30"
+                      : "text-white/70 hover:text-rose-400 border-white/[0.06] hover:bg-white/[0.08]"
+                  }`}
+                  onClick={handleToggleBlock}
+                  title={isBlockedByMe ? "Unblock contact" : "Block contact"}
+                  disabled={blockLoading}
+                >
+                  {blockLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                  )}
+                </Button>
+              </motion.div>
             </>
           )}
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }} title="Search">
-            <Search className="w-3.5 h-3.5" />
-          </Button>
+          <motion.div whileHover={{ scale: 1.1, y: -1 }} whileTap={{ scale: 0.92 }}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }} title="Search">
+              <Search className="w-3.5 h-3.5" />
+            </Button>
+          </motion.div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" title="Chat Wallpaper">
-                <ImageIcon className="w-3.5 h-3.5" />
-              </Button>
+              <motion.div whileHover={{ scale: 1.1, y: -1 }} whileTap={{ scale: 0.92 }}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" title="Chat Wallpaper">
+                  <ImageIcon className="w-3.5 h-3.5" />
+                </Button>
+              </motion.div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-[#0e111a]/95 border-white/10 text-white p-1.5 rounded-xl shadow-2xl w-48 backdrop-blur-2xl">
               <div className="px-2 py-1 text-[10px] font-bold text-white/40 uppercase tracking-wider">Chat Wallpaper</div>
@@ -664,22 +702,26 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => setShowGroupSettings(true)} title="Conversation Settings">
-            <Settings className="w-3.5 h-3.5" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={`h-8 w-8 rounded-lg border transition-all ${
-              showDetailsDrawer 
-                ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/40" 
-                : "hover:bg-white/[0.08] text-white/70 hover:text-white border-white/[0.06]"
-            }`} 
-            onClick={() => setShowDetailsDrawer(!showDetailsDrawer)} 
-            title="Chat Details & Customizer"
-          >
-            <Info className="w-3.5 h-3.5" />
-          </Button>
+          <motion.div whileHover={{ scale: 1.12, rotate: 45 }} whileTap={{ scale: 0.9 }}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/[0.06] transition-all" onClick={() => setShowGroupSettings(true)} title="Conversation Settings">
+              <Settings className="w-3.5 h-3.5" />
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.1, y: -1 }} whileTap={{ scale: 0.92 }}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className={`h-8 w-8 rounded-lg border transition-all ${
+                showDetailsDrawer 
+                  ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/40" 
+                  : "hover:bg-white/[0.08] text-white/70 hover:text-white border-white/[0.06]"
+              }`} 
+              onClick={() => setShowDetailsDrawer(!showDetailsDrawer)} 
+              title="Chat Details & Customizer"
+            >
+              <Info className="w-3.5 h-3.5" />
+            </Button>
+          </motion.div>
         </div>
       </div>
 
@@ -796,6 +838,25 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                       );
                     })()}
 
+                    {/* Floating Reaction Bar (Quick Emojis) */}
+                    {!msg.id.startsWith("temp-") && (
+                      <div className={`absolute -top-7 ${isMe ? 'right-0' : 'left-0'} flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0d0f18]/95 backdrop-blur-2xl border border-white/10 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-150 z-20 pointer-events-none group-hover:pointer-events-auto select-none`}>
+                        {QUICK_REACTIONS.map((emoji) => (
+                          <motion.button
+                            key={emoji}
+                            whileHover={{ scale: 1.45, y: -2 }}
+                            whileTap={{ scale: 0.85 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                            onClick={() => toggleReaction(msg.id, emoji)}
+                            className="text-xs p-0.5 hover:bg-white/15 rounded-full transition-colors cursor-pointer"
+                            title={`React ${emoji}`}
+                          >
+                            {emoji}
+                          </motion.button>
+                        ))}
+                      </div>
+                    )}
+
                     {msg.gif_url ? (
                       <div className="space-y-1">
                         <div className="rounded-xl overflow-hidden mt-0.5 max-w-[240px] border border-white/10 shadow-lg">
@@ -838,30 +899,63 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                       </div>
                     )}
 
+                    {/* Rendered Reaction Pills */}
+                    {(reactions[msg.id] || []).length > 0 && (
+                      <div className={`flex flex-wrap gap-1 mt-1.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        {Object.entries(
+                          (reactions[msg.id] || []).reduce((acc, r) => {
+                            acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                            return acc;
+                          }, {} as Record<string, number>)
+                        ).map(([emoji, count]) => {
+                          const hasMine = (reactions[msg.id] || []).some(r => r.user_id === user?.id && r.emoji === emoji);
+                          return (
+                            <motion.button
+                              key={emoji}
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              whileHover={{ scale: 1.15 }}
+                              whileTap={{ scale: 0.9 }}
+                              transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                              onClick={() => toggleReaction(msg.id, emoji)}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono border transition-all select-none ${
+                                hasMine 
+                                  ? "bg-indigo-500/25 border-indigo-400/50 text-indigo-200 shadow-sm" 
+                                  : "bg-black/50 border-white/10 text-white/80 hover:bg-white/10"
+                              }`}
+                            >
+                              <span>{emoji}</span>
+                              {count > 1 && <span className="text-[9.5px] font-bold">{count}</span>}
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     {/* Message actions (hover) */}
                     {!msg.id.startsWith("temp-") && (
                       <div className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-[#0c0d14]/90 backdrop-blur-2xl rounded-full border border-white/10 p-0.5 shadow-2xl z-10 select-none`}>
-                        <button onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Reply">
+                        <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Reply">
                           <Reply className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => setForwardMsg(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Forward">
+                        </motion.button>
+                        <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => setForwardMsg(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Forward">
                           <Forward className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => copyMessage(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Copy">
+                        </motion.button>
+                        <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => copyMessage(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Copy">
                           <Copy className="w-3.5 h-3.5" />
-                        </button>
+                        </motion.button>
                         {isMe && (
                           <>
-                            <button onClick={() => {
+                            <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => {
                               setEditingMsg(msg);
                               setNewMessage(msg.content);
                               messageInputRef.current?.focus();
                             }} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Edit">
                               <FilePenLine className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => setDeleteConfirm(msg)} className="p-1.5 hover:bg-rose-500/20 text-rose-400 rounded-full transition-colors" title="Delete">
+                            </motion.button>
+                            <motion.button whileHover={{ scale: 1.25 }} whileTap={{ scale: 0.85 }} onClick={() => setDeleteConfirm(msg)} className="p-1.5 hover:bg-rose-500/20 text-rose-400 rounded-full transition-colors" title="Delete">
                               <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            </motion.button>
                           </>
                         )}
                       </div>
@@ -878,12 +972,18 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
       {/* Scroll to bottom FAB */}
       {showScrollDown && (
-        <button
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: [0, -3, 0] }}
+          exit={{ opacity: 0, scale: 0.8, y: 8 }}
+          transition={{ y: { repeat: Infinity, duration: 2.2, ease: "easeInOut" } }}
+          whileHover={{ scale: 1.15 }}
+          whileTap={{ scale: 0.9 }}
           onClick={scrollToBottom}
-          className="absolute bottom-24 right-6 bg-indigo-600 text-white rounded-2xl w-10 h-10 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-indigo-400/30 hover:scale-105 transition-transform z-10 animate-in fade-in zoom-in-95"
+          className="absolute bottom-24 right-6 bg-indigo-600 text-white rounded-2xl w-10 h-10 flex items-center justify-center shadow-[0_0_25px_rgba(99,102,241,0.6)] border border-indigo-400/40 z-10 cursor-pointer"
         >
           <ArrowDown className="w-5 h-5" />
-        </button>
+        </motion.button>
       )}
 
       {/* Reply / Edit banner */}
@@ -944,9 +1044,11 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             <form onSubmit={handleSend} className="flex gap-2 items-end">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
-                    <Smile className="w-4 h-4" />
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.15, rotate: 12 }} whileTap={{ scale: 0.9 }}>
+                    <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
+                      <Smile className="w-4 h-4" />
+                    </Button>
+                  </motion.div>
                 </PopoverTrigger>
                 <PopoverContent side="top" align="start" className="p-0 border-none w-auto bg-transparent shadow-2xl">
                   <EmojiPicker theme={EmojiTheme.DARK} onEmojiClick={(e) => setNewMessage((m) => m + e.emoji)} width={320} height={400} />
@@ -955,9 +1057,11 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
               <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
                 <PopoverTrigger asChild>
-                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
-                    <ImageIcon className="w-4 h-4" />
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.15, y: -2 }} whileTap={{ scale: 0.9 }}>
+                    <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
+                      <ImageIcon className="w-4 h-4" />
+                    </Button>
+                  </motion.div>
                 </PopoverTrigger>
                 <PopoverContent side="top" align="start" className="p-0 border-none bg-transparent shadow-none w-auto">
                   <GifPicker onPick={(url) => { sendGif(url); setGifPickerOpen(false); }} />
@@ -989,15 +1093,22 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                 className={`flex-1 min-h-[38px] max-h-[160px] py-2 px-3 rounded-xl bg-black/45 text-white text-[13px] border border-white/[0.08] backdrop-blur-md placeholder:text-white/35 focus-visible:border-indigo-500/50 focus-visible:ring-1 focus-visible:ring-indigo-500/30 resize-none font-sans ${editingMsg ? 'ring-2 ring-indigo-500/50' : ''}`}
               />
 
-              <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>
+              <motion.div 
+                whileHover={{ scale: 1.08 }} 
+                whileTap={{ scale: 0.92 }}
+                animate={newMessage.trim() ? { scale: [1, 1.03, 1] } : {}}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <Button
                   type="submit"
                   disabled={!newMessage.trim() || sending}
                   size="icon"
                   className={`h-9 w-9 rounded-xl shrink-0 transition-all ${
                     editingMsg 
-                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
-                      : 'glow-btn'
+                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]' 
+                      : newMessage.trim()
+                        ? 'glow-btn shadow-[0_0_20px_rgba(99,102,241,0.6)]'
+                        : 'glow-btn opacity-60'
                   }`}
                 >
                   {editingMsg ? <Check className="w-4 h-4" /> : <Send className="w-3.5 h-3.5 ml-0.5" />}
@@ -1086,8 +1197,10 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   { id: "lines", label: "Lines", color: "bg-purple-600" },
                   { id: "none", label: "OLED", color: "bg-zinc-900" },
                 ].map((swatch) => (
-                  <button
+                  <motion.button
                     key={swatch.id}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setChatBgWallpaper(swatch.id as any)}
                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-left text-xs transition-all ${
                       chatBg === swatch.id
@@ -1097,7 +1210,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   >
                     <span className={`w-3 h-3 rounded-full ${swatch.color} shrink-0`} />
                     <span className="text-[11px] truncate">{swatch.label}</span>
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
@@ -1115,7 +1228,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
             {/* Block / Safety Action */}
             {!isGroup && otherUser && (
-              <div className="mt-auto pt-4 border-t border-white/[0.06]">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="mt-auto pt-4 border-t border-white/[0.06]">
                 <Button
                   variant="outline"
                   className={`w-full text-xs font-semibold rounded-xl border transition-all ${
@@ -1129,7 +1242,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   <ShieldAlert className="w-3.5 h-3.5 mr-2" />
                   {isBlockedByMe ? "Unblock Contact" : `Block ${headerTitle}`}
                 </Button>
-              </div>
+              </motion.div>
             )}
           </motion.div>
         )}

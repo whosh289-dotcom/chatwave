@@ -1,4 +1,5 @@
 import { useEffect, useState, useTransition, useCallback } from "react";
+import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Search, Plus, Sparkles, AlertCircle, ArrowLeft } from "lucide-react";
@@ -174,8 +175,10 @@ export function GifPicker({ onPick }: GifPickerProps) {
           {/* Quick Categories */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             {CATEGORIES.map((cat) => (
-              <button
+              <motion.button
                 key={cat.query}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
                 onClick={() => handleCategoryClick(cat)}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-medium shrink-0 transition-colors ${
                   activeCategory === cat.query && !query
@@ -184,7 +187,7 @@ export function GifPicker({ onPick }: GifPickerProps) {
                 }`}
               >
                 {cat.label}
-              </button>
+              </motion.button>
             ))}
           </div>
 
@@ -211,8 +214,11 @@ export function GifPicker({ onPick }: GifPickerProps) {
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 {gifs.map((g) => (
-                  <button
+                  <motion.button
                     key={g.id}
+                    whileHover={{ scale: 1.04, zIndex: 10 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 25 }}
                     onClick={() => onPick(g.url)}
                     className="group relative rounded-xl overflow-hidden aspect-video bg-muted/40 border border-white/5 hover:border-primary/50 hover:ring-2 hover:ring-primary/40 transition-all flex items-center justify-center"
                   >
@@ -231,7 +237,7 @@ export function GifPicker({ onPick }: GifPickerProps) {
                         {g.artist_name || "GIF"}
                       </p>
                     </div>
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             )}

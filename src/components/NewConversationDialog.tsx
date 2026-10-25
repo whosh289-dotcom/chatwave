@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -140,14 +141,23 @@ const NewConversationDialog = ({ open, onOpenChange, onConversationCreated }: Ne
         {/* Selected Users */}
         {selectedUsers.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {selectedUsers.map((u) => (
-              <div key={u.user_id} className="flex items-center gap-1 bg-secondary text-secondary-foreground rounded-full pl-2 pr-1 py-1 text-xs font-medium">
-                {u.display_name || "Unknown"}
-                <button onClick={() => removeUser(u.user_id)} className="rounded-full p-0.5 hover:bg-muted">
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+            <AnimatePresence>
+              {selectedUsers.map((u) => (
+                <motion.div
+                  key={u.user_id}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                  className="flex items-center gap-1 bg-secondary text-secondary-foreground rounded-full pl-2 pr-1 py-1 text-xs font-medium"
+                >
+                  {u.display_name || "Unknown"}
+                  <button onClick={() => removeUser(u.user_id)} className="rounded-full p-0.5 hover:bg-muted">
+                    <X className="w-3 h-3" />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
 
@@ -166,30 +176,33 @@ const NewConversationDialog = ({ open, onOpenChange, onConversationCreated }: Ne
             <p className="text-center text-sm text-muted-foreground py-4">No users found</p>
           )}
           {results.map((profile) => (
-            <Button
-              key={profile.user_id}
-              variant="ghost"
-              className="w-full justify-start gap-3 h-auto py-2.5"
-              onClick={() => addUser(profile)}
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                  {getInitials(profile.display_name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-left">
-                <p className="font-medium text-sm">{profile.display_name || "Unknown"}</p>
-                {profile.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
-              </div>
-              <MessageCircle className="w-4 h-4 ml-auto text-muted-foreground" />
-            </Button>
+            <motion.div key={profile.user_id} whileHover={{ scale: 1.015, x: 2 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 h-auto py-2.5"
+                onClick={() => addUser(profile)}
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {getInitials(profile.display_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-left">
+                  <p className="font-medium text-sm">{profile.display_name || "Unknown"}</p>
+                  {profile.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
+                </div>
+                <MessageCircle className="w-4 h-4 ml-auto text-muted-foreground" />
+              </Button>
+            </motion.div>
           ))}
         </div>
 
         {/* Create Button */}
-        <Button onClick={createGroup} disabled={loading || selectedUsers.length === 0} className="w-full">
-          {loading ? "Creating..." : `Create Group${selectedUsers.length > 0 ? ` (${selectedUsers.length} member${selectedUsers.length > 1 ? "s" : ""})` : ""}`}
-        </Button>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button onClick={createGroup} disabled={loading || selectedUsers.length === 0} className="w-full">
+            {loading ? "Creating..." : `Create Group${selectedUsers.length > 0 ? ` (${selectedUsers.length} member${selectedUsers.length > 1 ? "s" : ""})` : ""}`}
+          </Button>
+        </motion.div>
       </DialogContent>
     </Dialog>
   );
