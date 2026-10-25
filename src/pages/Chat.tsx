@@ -4,11 +4,11 @@ import NewConversationDialog from "@/components/NewConversationDialog";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { 
   MessageSquare, Hash, AtSign, Users, Bookmark, SlidersHorizontal, 
-  ChevronDown, Plus, MoreHorizontal, Radio, Phone, Bell, LayoutGrid, 
-  Eye, Download, Pin, ArrowRight, ChevronRight, Check, Sparkles, Send, 
+  ChevronDown, Plus, MoreHorizontal, Phone, Bell, LayoutGrid, 
+  Pin, ArrowRight, ChevronRight, Check, Sparkles, Send, 
   Bold, Code2, Smile, Lock, ShieldCheck, Globe, X, Minimize2, Maximize2, 
   ExternalLink, Settings, Volume2, Mic, MicOff, Video, VideoOff, Search,
-  FileText, FolderGit2, Palette, FileCode, CheckCheck, RefreshCw, ThumbsUp, Heart, Rocket
+  FileText, Palette, FileCode, CheckCheck, MessageCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,14 +38,14 @@ const Chat = () => {
   const [poppedOutConversation, setPoppedOutConversation] = useState<string | null>(null);
 
   // Navigation tab state
-  const [activeNavTab, setActiveNavTab] = useState<"workspace" | "channels" | "direct" | "colleagues" | "artifacts">("workspace");
+  const [activeNavTab, setActiveNavTab] = useState<"all" | "channels" | "direct" | "people" | "saved">("all");
   const [search, setSearch] = useState("");
 
-  // Voice Huddle State
-  const [inVoiceHuddle, setInVoiceHuddle] = useState(false);
+  // Voice Call State
+  const [inVoiceCall, setInVoiceCall] = useState(false);
   const [isMicMuted, setIsMicMuted] = useState(false);
 
-  // Right Inspector Drawer Toggle
+  // Right Details Drawer Toggle
   const [showRightInspector, setShowRightInspector] = useState(true);
   
   // Dialogs
@@ -129,52 +129,53 @@ const Chat = () => {
     <div className="flex h-screen w-full bg-[#080911] text-white overflow-hidden select-none font-sans">
       
       {/* ======================================================== */}
-      {/* COLUMN 1: LEFT NAVIGATION RAIL (Width ~220px)            */}
+      {/* COLUMN 1: LEFT NAVIGATION MENU (Width ~220px)            */}
       {/* ======================================================== */}
       <div className="w-[220px] shrink-0 border-r border-[#1a1d2e] bg-[#07080e] flex flex-col justify-between p-3.5 z-20">
         <div className="flex flex-col gap-4">
           
-          {/* Traffic Lights & ChatWave Logo */}
-          <div className="flex items-center gap-3 px-1 pt-1">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
+          {/* Friendly Clean ChatWave Logo (No confusing red/yellow/green dots) */}
+          <div className="flex items-center gap-2.5 px-1 pt-1">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_2px_10px_rgba(99,102,241,0.35)]">
+              <MessageSquare className="w-4 h-4 text-white fill-white" />
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-md bg-[#6c5ce7] flex items-center justify-center">
-                <MessageSquare className="w-3 h-3 text-white fill-white" />
-              </div>
-              <span className="text-sm font-bold tracking-tight text-white font-heading">
+            <div className="flex flex-col">
+              <span className="text-sm font-bold tracking-tight text-white font-heading leading-none">
                 ChatWave
+              </span>
+              <span className="text-[10px] text-white/40 font-medium mt-0.5">
+                Private Messaging
               </span>
             </div>
           </div>
 
-          {/* Quick Switch Input */}
+          {/* Friendly Search Input */}
           <div className="relative mt-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
             <input
               type="text"
               readOnly
               onClick={() => setShowNewDialog(true)}
-              placeholder="Quick switch (⌘K)"
+              placeholder="Search chats... (⌘K)"
               className="w-full bg-[#121422] border border-[#1e2235] hover:border-[#2a2f4a] rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-white placeholder:text-white/40 cursor-pointer transition-colors"
             />
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links - Simple, friendly, human labels */}
           <div className="flex flex-col gap-1 mt-1">
             <button
-              onClick={() => setActiveNavTab("workspace")}
+              onClick={() => {
+                setActiveNavTab("all");
+                if (conversations.length > 0) setSelectedConversation(conversations[0].id);
+              }}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeNavTab === "workspace"
+                activeNavTab === "all"
                   ? "bg-[#5b5bf7] text-white shadow-[0_4px_20px_rgba(91,91,247,0.35)]"
                   : "text-white/60 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
               <MessageSquare className="w-4 h-4" />
-              <span>Workspace Stream</span>
+              <span>All Messages</span>
             </button>
 
             <button
@@ -189,7 +190,7 @@ const Chat = () => {
               }`}
             >
               <Hash className="w-4 h-4" />
-              <span>Channels & Topics</span>
+              <span>Channels</span>
             </button>
 
             <button
@@ -204,36 +205,36 @@ const Chat = () => {
               }`}
             >
               <AtSign className="w-4 h-4" />
-              <span>Direct Threads</span>
+              <span>Direct Messages</span>
             </button>
 
             <button
-              onClick={() => setActiveNavTab("colleagues")}
+              onClick={() => setActiveNavTab("people")}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeNavTab === "colleagues"
+                activeNavTab === "people"
                   ? "bg-[#5b5bf7] text-white shadow-[0_4px_20px_rgba(91,91,247,0.35)]"
                   : "text-white/60 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
               <Users className="w-4 h-4" />
-              <span>Colleagues</span>
+              <span>Contacts</span>
             </button>
 
             <button
-              onClick={() => setActiveNavTab("artifacts")}
+              onClick={() => setActiveNavTab("saved")}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeNavTab === "artifacts"
+                activeNavTab === "saved"
                   ? "bg-[#5b5bf7] text-white shadow-[0_4px_20px_rgba(91,91,247,0.35)]"
                   : "text-white/60 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
               <Bookmark className="w-4 h-4" />
-              <span>Pinned Artifacts</span>
+              <span>Saved Notes</span>
             </button>
           </div>
         </div>
 
-        {/* Bottom Real User Card */}
+        {/* Bottom User Card - Clean, friendly status */}
         <div className="bg-[#121422] border border-[#1e2235] p-2.5 rounded-xl flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="relative shrink-0">
@@ -246,17 +247,17 @@ const Chat = () => {
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-bold text-white truncate leading-tight">
-                {user?.username || (user as any)?.displayName || "User"}
+                {user?.username || (user as any)?.displayName || "Your Account"}
               </span>
-              <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1 font-medium">
-                ONLINE • 14ms
+              <span className="text-[10px] text-emerald-400 flex items-center gap-1 font-medium">
+                Online
               </span>
             </div>
           </div>
           <button 
             onClick={() => setShowSettings(true)}
             className="text-white/40 hover:text-white p-1 rounded transition-colors"
-            title="Account Preferences"
+            title="Settings"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
           </button>
@@ -269,20 +270,20 @@ const Chat = () => {
       <div className="w-[230px] shrink-0 border-r border-[#1a1d2e] bg-[#0a0b14] flex flex-col justify-between p-3.5 z-10">
         <div className="flex flex-col gap-4 overflow-y-auto">
           
-          {/* Workspace Switcher Card */}
+          {/* Friendly Workspace Card */}
           <div className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/[0.06]">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-xs text-white">
-                {(user?.username || "A")[0]?.toUpperCase()}
+                {(user?.username || "W")[0]?.toUpperCase()}
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-white">Workspace</span>
-                  <span className="text-[8px] font-mono text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded border border-emerald-500/20 font-semibold">
-                    ENTERPRISE PRO
+                  <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded font-medium">
+                    Online
                   </span>
                 </div>
-                <span className="text-[9px] font-mono text-white/40">WORKSPACE SYNC v4.18.2</span>
+                <span className="text-[10px] text-white/40">Synced</span>
               </div>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-white/40" />
@@ -290,35 +291,35 @@ const Chat = () => {
 
           {/* CHANNELS SECTION */}
           <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between px-1 text-[10px] font-mono uppercase tracking-wider text-white/40 font-semibold">
+            <div className="flex items-center justify-between px-1 text-[11px] font-medium text-white/40">
               <span>Channels</span>
               <button 
                 onClick={() => setShowNewDialog(true)}
                 className="hover:text-white p-0.5 rounded transition-colors"
                 title="Create Channel"
               >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {channels.length === 0 ? (
               <button
                 onClick={() => setShowNewDialog(true)}
-                className="w-full text-left px-2.5 py-2 text-[11px] text-white/40 hover:text-white/70 italic rounded-lg transition-colors"
+                className="w-full text-left px-2.5 py-2 text-xs text-white/40 hover:text-white/70 italic rounded-lg transition-colors"
               >
-                + Create first channel
+                + Create a channel
               </button>
             ) : (
               channels.map((conv) => {
                 const isSelected = selectedConversation === conv.id;
-                const name = conv.name || "channel";
+                const name = conv.name || "general";
                 return (
                   <button
                     key={conv.id}
                     onClick={() => setSelectedConversation(conv.id)}
                     className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       isSelected
-                        ? "bg-[#25203d] border border-[#4a3b75] text-white"
+                        ? "bg-[#25203d] border border-[#4a3b75] text-white shadow-sm"
                         : "text-white/60 hover:text-white hover:bg-white/[0.03]"
                     }`}
                   >
@@ -327,13 +328,13 @@ const Chat = () => {
                       <span className="truncate">{name}</span>
                     </div>
                     {isSelected && (
-                      <span className="text-[9px] font-mono bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                      <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0 font-medium">
                         <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                         Active
                       </span>
                     )}
                     {!isSelected && conv.unread > 0 && (
-                      <span className="text-[10px] font-mono text-white/80 bg-indigo-500/30 px-1.5 py-0.2 rounded shrink-0">
+                      <span className="text-[10px] text-white/80 bg-indigo-500/30 px-1.5 py-0.2 rounded shrink-0">
                         {conv.unread}
                       </span>
                     )}
@@ -345,23 +346,23 @@ const Chat = () => {
 
           {/* DIRECT MESSAGES SECTION */}
           <div className="flex flex-col gap-1 mt-2">
-            <div className="flex items-center justify-between px-1 text-[10px] font-mono uppercase tracking-wider text-white/40 font-semibold">
+            <div className="flex items-center justify-between px-1 text-[11px] font-medium text-white/40">
               <span>Direct Messages</span>
               <button 
                 onClick={() => setShowNewDialog(true)}
                 className="hover:text-white p-0.5 rounded transition-colors"
-                title="New Direct Message"
+                title="New Message"
               >
-                <MoreHorizontal className="w-3 h-3" />
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {directMessages.length === 0 ? (
               <button
                 onClick={() => setShowNewDialog(true)}
-                className="w-full text-left px-2.5 py-2 text-[11px] text-white/40 hover:text-white/70 italic rounded-lg transition-colors"
+                className="w-full text-left px-2.5 py-2 text-xs text-white/40 hover:text-white/70 italic rounded-lg transition-colors"
               >
-                + Start direct thread
+                + Send a direct message
               </button>
             ) : (
               directMessages.map((conv) => {
@@ -375,7 +376,7 @@ const Chat = () => {
                     onClick={() => setSelectedConversation(conv.id)}
                     className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-left transition-all ${
                       isSelected
-                        ? "bg-[#25203d] border border-[#4a3b75] text-white"
+                        ? "bg-[#25203d] border border-[#4a3b75] text-white shadow-sm"
                         : "hover:bg-white/[0.03] text-white/70"
                     }`}
                   >
@@ -390,7 +391,7 @@ const Chat = () => {
                     <div className="flex flex-col min-w-0 flex-1">
                       <span className="text-xs font-medium text-white truncate">{displayName}</span>
                       <span className="text-[10px] text-white/40 truncate">
-                        {conv.lastMessage ? conv.lastMessage.content : "Active Member"}
+                        {conv.lastMessage ? conv.lastMessage.content : "Start chatting"}
                       </span>
                     </div>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
@@ -401,86 +402,85 @@ const Chat = () => {
           </div>
         </div>
 
-        {/* Bottom System Throughput Card */}
-        <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-[9px] font-mono">
-            <span className="text-white/40 uppercase tracking-wider font-semibold">System Throughput</span>
-            <span className="text-emerald-400 font-bold">99.98%</span>
+        {/* Bottom Friendly Connection Status Card */}
+        <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+            <span className="text-xs text-white/60 font-medium">Messages Protected</span>
           </div>
-          <div className="w-full h-1 bg-white/[0.08] rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 w-[99.98%] rounded-full shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-          </div>
+          <Lock className="w-3.5 h-3.5 text-emerald-400" />
         </div>
       </div>
 
       {/* ======================================================== */}
-      {/* COLUMN 3: MAIN STAGE / REAL CONVERSATION STREAM (Flex 1) */}
+      {/* COLUMN 3: MAIN STAGE / REAL CHAT VIEW                    */}
       {/* ======================================================== */}
       <div className="flex-1 bg-[#090a14] flex flex-col overflow-hidden relative">
         
-        {/* Top Global Header Bar */}
+        {/* Top Global Header Bar - Friendly, clean actions */}
         <div className="h-12 shrink-0 px-5 flex items-center justify-between border-b border-[#1a1d2e] bg-[#090a14]/90 backdrop-blur-md z-10">
           {/* Left Title */}
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-bold text-white font-heading tracking-tight">
               {selectedTitle}
             </span>
-            <span className="text-[10px] font-mono text-white/50 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.08]">
-              #core-runtime
-            </span>
           </div>
 
           {/* Right Global Actions */}
           <div className="flex items-center gap-2.5">
-            {/* E2EE Active Pill */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10.5px] font-mono font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-              <span>E2EE ACTIVE</span>
+            {/* Friendly Encrypted Badge */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+              <Lock className="w-3 h-3 text-emerald-400" />
+              <span>Encrypted</span>
             </div>
 
-            {/* Join Voice Huddle Button */}
+            {/* Voice Call Button */}
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => {
-                setInVoiceHuddle(!inVoiceHuddle);
-                if (!inVoiceHuddle) toast.success(`Joined Voice Huddle in ${selectedTitle}`);
-                else toast.info("Left Voice Huddle");
+                setInVoiceCall(!inVoiceCall);
+                if (!inVoiceCall) toast.success(`Started voice call in ${selectedTitle}`);
+                else toast.info("Call ended");
               }}
               className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-                inVoiceHuddle
+                inVoiceCall
                   ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_12px_rgba(52,211,153,0.3)]"
                   : "bg-white/[0.04] hover:bg-white/[0.08] text-white border-white/[0.1]"
               }`}
             >
               <Phone className="w-3.5 h-3.5" />
-              <span>{inVoiceHuddle ? "Leave Huddle" : "Join Voice Huddle"}</span>
+              <span>{inVoiceCall ? "End Call" : "Voice Call"}</span>
             </motion.button>
 
-            {/* Notification Bell */}
-            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">
+            {/* Notifications */}
+            <button 
+              onClick={() => toast.info("Notifications are enabled")}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors"
+              title="Notifications"
+            >
               <Bell className="w-4 h-4" />
             </button>
 
-            {/* Grid Apps / Toggle Right Drawer */}
+            {/* Toggle Info Drawer */}
             <button 
               onClick={() => setShowRightInspector(!showRightInspector)}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors"
-              title="Toggle Overview Drawer"
+              title="About this chat"
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
 
-            {/* User Profile Ring */}
+            {/* User Profile Avatar */}
             <div className="w-7 h-7 rounded-full bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-xs font-bold text-purple-200">
               {(user?.username || "U")[0]?.toUpperCase()}
             </div>
           </div>
         </div>
 
-        {/* Live Voice Huddle Overlay Banner */}
+        {/* Live Voice Call Overlay Banner */}
         <AnimatePresence>
-          {inVoiceHuddle && (
+          {inVoiceCall && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -489,15 +489,15 @@ const Chat = () => {
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                  <Radio className="w-4 h-4 animate-pulse" />
+                  <Phone className="w-4 h-4 animate-bounce" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    Live Huddle in {selectedTitle}
-                    <span className="text-[10px] font-mono text-emerald-400">● Streaming 48kHz</span>
+                    Voice Call Active with {selectedTitle}
+                    <span className="text-[10px] text-emerald-400 font-medium">● Connected</span>
                   </span>
                   <span className="text-[10px] text-white/50">
-                    Active participants in room
+                    High-quality audio enabled
                   </span>
                 </div>
               </div>
@@ -505,7 +505,7 @@ const Chat = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsMicMuted(!isMicMuted)}
-                  className={`p-2 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
+                  className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
                     isMicMuted
                       ? "bg-rose-500/20 text-rose-300 border-rose-500/30"
                       : "bg-white/[0.05] text-white border-white/10 hover:bg-white/10"
@@ -515,10 +515,10 @@ const Chat = () => {
                   <span>{isMicMuted ? "Muted" : "Mute"}</span>
                 </button>
                 <button
-                  onClick={() => setInVoiceHuddle(false)}
-                  className="px-3 py-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-semibold transition-colors"
+                  onClick={() => setInVoiceCall(false)}
+                  className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition-colors"
                 >
-                  Leave
+                  End
                 </button>
               </div>
             </motion.div>
@@ -535,18 +535,18 @@ const Chat = () => {
             />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-white/50">
-              <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center mb-4 shadow-lg">
                 <MessageSquare className="w-8 h-8 text-indigo-400/60" />
               </div>
-              <h3 className="text-sm font-bold text-white mb-1">Select or start a conversation</h3>
+              <h3 className="text-sm font-bold text-white mb-1">Select or start a chat</h3>
               <p className="text-xs text-white/40 max-w-xs mb-4">
-                Choose a channel or direct message from the left to start messaging in real time.
+                Pick a channel or friend on the left to start sending messages in real time.
               </p>
               <button
                 onClick={() => setShowNewDialog(true)}
                 className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg transition-all"
               >
-                + New Conversation
+                + Start New Chat
               </button>
             </div>
           )}
@@ -554,7 +554,7 @@ const Chat = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* COLUMN 4: RIGHT CONTEXTUAL INSPECTOR DRAWER (~280px)     */}
+      {/* COLUMN 4: RIGHT DETAILS DRAWER (~280px)                   */}
       {/* ======================================================== */}
       <AnimatePresence>
         {showRightInspector && (
@@ -565,86 +565,74 @@ const Chat = () => {
             className="w-[280px] shrink-0 border-l border-[#1a1d2e] bg-[#0c0d18] flex flex-col p-4 overflow-y-auto space-y-5 z-10"
           >
             {/* Header */}
-            <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-white/40 font-semibold">
-              <span>Channel Overview</span>
+            <div className="flex items-center justify-between text-xs font-medium text-white/50">
+              <span>About this chat</span>
               <button 
                 onClick={() => setShowSettings(true)}
                 className="hover:text-white transition-colors"
+                title="Chat Settings"
               >
                 <Settings className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Description & Telemetry Card */}
+            {/* Description & Privacy Card */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-white tracking-tight">
+              <h3 className="text-sm font-bold text-white tracking-tight">
                 {selectedTitle}
               </h3>
-              <p className="text-[11px] text-white/50 leading-relaxed">
-                Single source of truth for design tokens, real-time message stream, and encrypted peer channels.
+              <p className="text-xs text-white/50 leading-relaxed">
+                Messages, photos, and files shared in this conversation.
               </p>
 
-              {/* 2-Column Telemetry Box */}
+              {/* Friendly Status Boxes */}
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <div className="p-2.5 rounded-xl bg-[#121422] border border-[#1e2235] flex flex-col gap-1">
-                  <span className="text-[9px] font-mono text-white/40 uppercase">Security</span>
-                  <span className="text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    TLS 1.3 AES
+                  <span className="text-[10px] text-white/40">Privacy</span>
+                  <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    Private
                   </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#121422] border border-[#1e2235] flex flex-col gap-1">
-                  <span className="text-[9px] font-mono text-white/40 uppercase">Latency</span>
-                  <span className="text-[10px] font-mono text-cyan-400 font-bold">
-                    14ms edge
+                  <span className="text-[10px] text-white/40">Connection</span>
+                  <span className="text-xs text-cyan-400 font-semibold flex items-center gap-1">
+                    <Check className="w-3 h-3" />
+                    Fast
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Pinned Milestone Card */}
-            <div className="p-3 rounded-xl bg-[#121422] border border-[#1e2235] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[9.5px] font-mono text-white/50 uppercase tracking-wider flex items-center gap-1">
-                  <Pin className="w-3 h-3 text-purple-400" />
-                  Pinned Milestone
-                </span>
-                <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20 font-bold">
-                  92%
-                </span>
+            {/* Friendly Pinned Note Card */}
+            <div className="p-3 rounded-xl bg-[#121422] border border-[#1e2235] space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-300">
+                <Pin className="w-3.5 h-3.5" />
+                <span>Pinned Note</span>
               </div>
-              <div className="text-xs font-bold text-white">
-                Q1 Design Token Spec
-              </div>
-              <div className="w-full h-1 bg-white/[0.08] rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-400 w-[92%] rounded-full shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-              </div>
-              <div className="text-[10px] text-white/40 font-mono">
-                Target handoff: Friday, March 1st
-              </div>
+              <p className="text-xs text-white/70 leading-relaxed">
+                Welcome to {selectedTitle}! Feel free to share messages, code snippets, and files here.
+              </p>
             </div>
 
-            {/* Active Members / Online Contributors Section */}
+            {/* Members Section (Only real members in this conversation) */}
             <div className="space-y-2 pt-2 border-t border-white/[0.06]">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-white/40 font-semibold block">
-                Active Participants ({selectedConvObj ? selectedConvObj.memberCount : 1})
+              <span className="text-xs font-medium text-white/50 block">
+                Members in this chat ({selectedConvObj ? selectedConvObj.memberCount : 1})
               </span>
-              <div className="flex items-center -space-x-2">
+              <div className="flex items-center gap-2">
                 {selectedConvObj?.otherUsers.map((u, i) => (
-                  <Avatar key={u.user_id || i} className="w-7 h-7 ring-2 ring-[#0c0d18]" title={u.display_name || "Member"}>
-                    <AvatarFallback className="bg-gradient-to-tr from-indigo-500 to-purple-600 text-white text-[10px] font-bold">
+                  <Avatar key={u.user_id || i} className="w-8 h-8 border border-white/10" title={u.display_name || "Member"}>
+                    <AvatarFallback className="bg-gradient-to-tr from-indigo-500 to-purple-600 text-white text-xs font-bold">
                       {(u.display_name || "M")[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 ))}
-                <Avatar className="w-7 h-7 ring-2 ring-[#0c0d18]" title={user?.username || "You"}>
-                  <AvatarFallback className="bg-gradient-to-tr from-emerald-500 to-teal-600 text-white text-[10px] font-bold">
+                <Avatar className="w-8 h-8 border border-white/10" title={user?.username || "You"}>
+                  <AvatarFallback className="bg-gradient-to-tr from-emerald-500 to-teal-600 text-white text-xs font-bold">
                     {(user?.username || "U")[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="w-7 h-7 rounded-full bg-[#1e2235] text-white/70 text-[10px] font-mono font-bold flex items-center justify-center ring-2 ring-[#0c0d18]">
-                  +21
-                </div>
               </div>
             </div>
           </motion.div>
@@ -652,7 +640,7 @@ const Chat = () => {
       </AnimatePresence>
 
       {/* ======================================================== */}
-      {/* FLOATING 3D POP-OUT WINDOW (DETACHED CHAT)                */}
+      {/* FLOATING POP-OUT CHAT WINDOW                             */}
       {/* ======================================================== */}
       <AnimatePresence>
         {poppedOutConversation && (
@@ -668,32 +656,31 @@ const Chat = () => {
             transition={{ type: "spring", stiffness: 420, damping: 28 }}
             className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50 w-[94vw] sm:w-[440px] rounded-2xl border border-white/20 bg-[#080a14]/96 backdrop-blur-3xl shadow-[0_25px_80px_rgba(0,0,0,0.9),0_0_40px_rgba(99,102,241,0.3)] overflow-hidden flex flex-col"
           >
-            {/* Pop-Out Titlebar */}
-            <div className="h-10 shrink-0 px-3.5 flex items-center justify-between border-b border-white/[0.1] bg-black/60 cursor-move">
+            {/* Friendly Titlebar (Clean [X] close button, no red/yellow/green dots) */}
+            <div className="h-11 shrink-0 px-4 flex items-center justify-between border-b border-white/[0.1] bg-black/60">
               <div className="flex items-center gap-2">
+                <ExternalLink className="w-4 h-4 text-indigo-400" />
+                <span className="text-xs font-bold text-white">Floating Chat</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    setSelectedConversation(poppedOutConversation);
+                    setPoppedOutConversation(null);
+                  }}
+                  className="text-xs text-indigo-300 hover:text-white px-2.5 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 transition-all cursor-pointer font-medium"
+                >
+                  Dock
+                </button>
                 <button
                   onClick={() => setPoppedOutConversation(null)}
-                  className="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e] hover:brightness-110 flex items-center justify-center group cursor-pointer transition-all"
-                  title="Close Floating Window"
+                  className="w-7 h-7 rounded-lg hover:bg-white/[0.08] text-white/60 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+                  title="Close"
                 >
-                  <X className="w-2 h-2 text-black/80 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-
-              <div className="flex items-center gap-1.5 text-xs font-heading font-semibold text-white/90">
-                <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Detached Stage</span>
-              </div>
-
-              <button
-                onClick={() => {
-                  setSelectedConversation(poppedOutConversation);
-                  setPoppedOutConversation(null);
-                }}
-                className="text-[10.5px] font-mono text-indigo-300 hover:text-white px-2 py-0.5 rounded bg-indigo-500/20 border border-indigo-500/30 transition-all cursor-pointer"
-              >
-                Dock
-              </button>
             </div>
 
             {/* Pop-Out Stage Body */}
