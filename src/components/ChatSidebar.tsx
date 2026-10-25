@@ -296,26 +296,34 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
               <ContextMenu key={conv.id}>
                 <ContextMenuTrigger asChild>
                   <motion.button
+                    layout
                     whileHover={{ 
-                      x: 5, 
-                      scale: 1.018, 
-                      rotateY: -3.5, 
+                      x: 6, 
+                      scale: 1.02, 
+                      rotateY: -4, 
                       rotateX: 1.5, 
-                      z: 14,
+                      z: 16,
                       boxShadow: isSelected
-                        ? "0 16px 36px -4px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.3)"
+                        ? "0 20px 40px -6px rgba(99,102,241,0.45), inset 0 1px 0 rgba(255,255,255,0.3)"
                         : "0 12px 28px -4px rgba(0,0,0,0.6), 0 0 16px rgba(99,102,241,0.18)"
                     }}
-                    whileTap={{ scale: 0.98, z: -4, rotateY: 0, rotateX: 0 }}
+                    whileTap={{ scale: 0.95, z: -8, rotateX: 3, rotateY: 0 }}
                     transition={{ type: "spring", stiffness: 420, damping: 24 }}
                     style={{ transformStyle: "preserve-3d" }}
                     onClick={() => onSelectConversation(conv.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left border ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left border relative overflow-hidden ${
                       isSelected
-                        ? "bg-indigo-500/20 border-indigo-400/40 shadow-[0_4px_20px_rgba(99,102,241,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] text-white backdrop-blur-md"
+                        ? "bg-indigo-500/20 border-indigo-400/40 shadow-[0_4px_25px_rgba(99,102,241,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] text-white backdrop-blur-md"
                         : "bg-white/[0.025] hover:bg-white/[0.065] border-white/[0.05] hover:border-white/[0.12] text-white/80 hover:text-white backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
                     }`}
                   >
+                    {isSelected && (
+                      <motion.div
+                        layoutId="active-chat-indicator"
+                        transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-gradient-to-b from-indigo-400 to-purple-400 rounded-r-full shadow-[0_0_10px_rgba(129,140,248,0.8)]"
+                      />
+                    )}
                     <div className="relative shrink-0">
                       <Avatar className={`h-9 w-9 rounded-lg border p-0.5 bg-gradient-to-tr ${avatarGrad} transition-transform group-hover:scale-105`}>
                         {conv.logo_url ? (
