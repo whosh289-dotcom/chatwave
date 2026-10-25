@@ -142,11 +142,19 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [gifPickerOpen, setGifPickerOpen] = useState(false);
-  const [chatBg, setChatBg] = useState(() => localStorage.getItem("chat-bg") || "doodle");
+  const [chatBg, setChatBg] = useState(() => {
+    const bg = localStorage.getItem("chat-bg");
+    if (!bg || bg === "doodle") {
+      try { localStorage.setItem("chat-bg", "none"); } catch {}
+      return "none";
+    }
+    return bg;
+  });
 
   useEffect(() => {
     const handleBgChange = () => {
-      setChatBg(localStorage.getItem("chat-bg") || "doodle");
+      const bg = localStorage.getItem("chat-bg");
+      setChatBg((!bg || bg === "doodle") ? "none" : bg);
     };
     window.addEventListener("chat-bg-change", handleBgChange);
     window.addEventListener("storage", handleBgChange);
@@ -685,9 +693,9 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-[#0e111a]/95 border-white/10 text-white p-1.5 rounded-xl shadow-2xl w-48 backdrop-blur-2xl">
               <div className="px-2 py-1 text-[10px] font-bold text-white/40 uppercase tracking-wider">Chat Wallpaper</div>
-              <DropdownMenuItem onClick={() => setChatBgWallpaper("doodle")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
-                <span>WhatsApp Doodle</span>
-                {chatBg === "doodle" && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+              <DropdownMenuItem onClick={() => setChatBgWallpaper("none")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
+                <span>Deep Solid (Default)</span>
+                {chatBg === "none" && <Check className="w-3.5 h-3.5 text-emerald-400" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setChatBgWallpaper("dots")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
                 <span>Subtle Dots</span>
@@ -700,10 +708,6 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               <DropdownMenuItem onClick={() => setChatBgWallpaper("lines")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
                 <span>Diagonal Lines</span>
                 {chatBg === "lines" && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setChatBgWallpaper("none")} className="text-xs hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-between">
-                <span>Deep Solid</span>
-                {chatBg === "none" && <Check className="w-3.5 h-3.5 text-emerald-400" />}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -750,12 +754,11 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
         </div>
       )}
 
-      {/* Messages Stream Container with WhatsApp / Custom Doodle Wallpaper */}
+      {/* Messages Stream Container with Dynamic Wallpaper */}
       <div 
         ref={scrollAreaRef} 
         onScroll={handleScroll} 
         className={`flex-1 overflow-y-auto px-4 py-3 transition-colors duration-300 ${
-          chatBg === "doodle" ? "chat-bg-doodle" :
           chatBg === "dots" ? "chat-bg-dots" :
           chatBg === "grid" ? "chat-bg-grid" :
           chatBg === "lines" ? "chat-bg-lines" : "chat-bg-none"
@@ -1239,13 +1242,12 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 font-mono block mb-2.5">
                 Pick Chat Wallpaper
               </span>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: "doodle", label: "Doodle", color: "bg-[#005c4b]" },
+                  { id: "none", label: "Deep Solid", color: "bg-zinc-900" },
                   { id: "dots", label: "Dots", color: "bg-indigo-600" },
                   { id: "grid", label: "Grid", color: "bg-cyan-600" },
                   { id: "lines", label: "Lines", color: "bg-purple-600" },
-                  { id: "none", label: "OLED", color: "bg-zinc-900" },
                 ].map((swatch) => (
                   <motion.button
                     key={swatch.id}

@@ -51,9 +51,6 @@ const Chat = () => {
                 style={{ transformPerspective: 1200 }}
                 className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 relative overflow-hidden bg-[#08090f]/90 w-full h-full"
               >
-                {/* Subtle Ambient WhatsApp Doodle Background */}
-                <div className="absolute inset-0 chat-bg-doodle opacity-35 pointer-events-none" />
-
                 {/* Animated Glowing Radial Halo */}
                 <motion.div
                   animate={{
@@ -138,7 +135,7 @@ const Chat = () => {
                     transition={{ delay: 0.2 }}
                     className="text-white/50 text-[13.5px] leading-relaxed mb-7 max-w-sm"
                   >
-                    High-performance edge messaging, authenticated peer calls, and expressive custom WhatsApp wallpapers.
+                    High-performance edge messaging, authenticated peer calls, and expressive custom wallpapers.
                   </motion.p>
 
                   <motion.div
@@ -172,7 +169,7 @@ const Chat = () => {
                       style={{ transformPerspective: 600 }}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-sky-500/40 text-[11.5px] text-white/80 font-medium transition-colors shadow-sm select-none cursor-pointer"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-sky-400" /> WhatsApp Themes
+                      <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Modern Themes
                     </motion.span>
                   </motion.div>
 

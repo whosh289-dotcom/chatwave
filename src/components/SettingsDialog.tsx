@@ -16,7 +16,7 @@ interface SettingsDialogProps {
 
 const ACCENT_THEMES = [
   { id: "indigo", name: "Linear Indigo", color: "#6366f1", desc: "Default modern classic" },
-  { id: "emerald", name: "WhatsApp Emerald", color: "#10b981", desc: "Authentic WhatsApp green" },
+  { id: "emerald", name: "Emerald Glow", color: "#10b981", desc: "Vibrant emerald green" },
   { id: "telegram", name: "Telegram Azure", color: "#0ea5e9", desc: "Electric cyan & sky blue" },
   { id: "rose", name: "Cyber Rose", color: "#f43f5e", desc: "Vibrant neon pink" },
   { id: "solar", name: "Solar Sunset", color: "#f59e0b", desc: "Warm amber & gold" },
@@ -24,16 +24,22 @@ const ACCENT_THEMES = [
 ];
 
 const BACKGROUNDS = [
-  { id: "doodle", name: "WhatsApp Doodle (Default)", class: "chat-bg-doodle" },
+  { id: "none", name: "Deep Solid (Default)", class: "chat-bg-none" },
   { id: "dots", name: "Subtle Dots", class: "chat-bg-dots" },
   { id: "grid", name: "Modern Grid", class: "chat-bg-grid" },
-  { id: "lines", name: "Diagonal Lines", class: "chat-bg-lines" },
-  { id: "none", name: "Deep Solid", class: "chat-bg-none" }
+  { id: "lines", name: "Diagonal Lines", class: "chat-bg-lines" }
 ];
 
 export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
   const [activeTab, setActiveTab] = useState("appearance");
-  const [activeBg, setActiveBg] = useState(() => localStorage.getItem("chat-bg") || "doodle");
+  const [activeBg, setActiveBg] = useState(() => {
+    const bg = localStorage.getItem("chat-bg");
+    if (!bg || bg === "doodle") {
+      try { localStorage.setItem("chat-bg", "none"); } catch {}
+      return "none";
+    }
+    return bg;
+  });
   const [activeAccent, setActiveAccent] = useState(() => localStorage.getItem("chat-accent") || "indigo");
 
   const { user } = useAuth();
