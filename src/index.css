@@ -265,7 +265,7 @@
 
   /* Figma Frosted Glass Outgoing & Incoming Messages */
   .chat-bubble-sent {
-    @apply rounded-[18px] rounded-br-[4px] px-3.5 py-2 text-[13.5px] leading-relaxed;
+    @apply rounded-[18px] rounded-br-[4px] px-3.5 py-2 text-[13.5px] leading-relaxed break-words min-w-0 max-w-full;
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.92) 0%, rgba(79, 70, 229, 0.95) 100%);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -275,7 +275,7 @@
   }
 
   .chat-bubble-received {
-    @apply rounded-[18px] rounded-bl-[4px] px-3.5 py-2 text-[13.5px] leading-relaxed;
+    @apply rounded-[18px] rounded-bl-[4px] px-3.5 py-2 text-[13.5px] leading-relaxed break-words min-w-0 max-w-full;
     background: rgba(255, 255, 255, 0.075);
     backdrop-filter: blur(24px) saturate(190%);
     -webkit-backdrop-filter: blur(24px) saturate(190%);

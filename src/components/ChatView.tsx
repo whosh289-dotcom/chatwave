@@ -113,6 +113,16 @@ const isLikelyCode = (text: string): boolean => {
   return false;
 };
 
+const isPureCodeMessage = (content: string): boolean => {
+  if (!content) return false;
+  const trimmed = content.trim();
+  if (trimmed.startsWith('```') && trimmed.endsWith('```')) {
+    const inner = trimmed.slice(3, -3).trim();
+    if (!inner.includes('```')) return true;
+  }
+  return isLikelyCode(trimmed);
+};
+
 const isSingleLineShortText = (content: string): boolean => {
   if (!content) return false;
   const trimmed = content.trim();
@@ -143,6 +153,138 @@ const CopyCodeButton = ({ code }: { code: string }) => {
   );
 };
 
+const MessageStatus = ({
+  msg,
+  isMe,
+  maxReadTime
+}: {
+  msg: Message;
+  isMe: boolean;
+  maxReadTime: number;
+}) => (
+  <div className={`inline-flex items-center gap-1 shrink-0 text-[10px] font-mono select-none self-end pb-0.5 ml-auto ${isMe ? 'text-white/75' : 'text-white/45'}`}>
+    <span>{format(new Date(msg.created_at), "HH:mm")}</span>
+    {msg.edited && <span className="italic text-[9px] text-white/50">edited</span>}
+    {isMe && !msg.id.startsWith("temp-") && (
+      new Date(msg.created_at).getTime() <= maxReadTime ? (
+        <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
+      ) : (
+        <Check className="w-3 h-3 opacity-60" />
+      )
+    )}
+    {msg.id.startsWith("temp-") && (
+      <span className="opacity-40 font-mono">sending…</span>
+    )}
+  </div>
+);
+
+const CodeBubble = ({
+  msg,
+  isMe,
+  maxReadTime
+}: {
+  msg: Message;
+  isMe: boolean;
+  maxReadTime: number;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+
+  let rawCode = msg.content.trim();
+  let explicitLang: string | undefined = undefined;
+  if (rawCode.startsWith('```') && rawCode.endsWith('```')) {
+    const inner = rawCode.slice(3, -3);
+    const matchLang = inner.match(/^([a-zA-Z0-9+#_.-]+)\n/);
+    if (matchLang) {
+      explicitLang = matchLang[1];
+      rawCode = inner.slice(matchLang[0].length);
+    } else {
+      rawCode = inner;
+    }
+  }
+
+  const lines = rawCode.split("\n");
+  const lineCount = lines.length;
+  const isLarge = lineCount > 12 || rawCode.length > 500;
+  const lang = explicitLang || detectLanguage(rawCode);
+  const sizeKb = (new Blob([rawCode]).size / 1024).toFixed(1) + " KB";
+
+  return (
+    <div
+      className={`w-full min-w-0 max-w-full rounded-2xl overflow-hidden border backdrop-blur-2xl text-left select-text transition-all ${
+        isMe
+          ? "bg-[#0b0e1a]/95 border-indigo-500/40 shadow-[0_14px_36px_rgba(0,0,0,0.65),0_0_20px_rgba(99,102,241,0.2)]"
+          : "bg-[#090b14]/95 border-white/12 shadow-[0_14px_36px_rgba(0,0,0,0.65)]"
+      }`}
+    >
+      {/* Header Bar */}
+      <div className="px-3.5 py-2 bg-white/[0.04] border-b border-white/10 flex items-center justify-between text-xs select-none min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <FileCode className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+          <span className="font-mono text-[11px] font-semibold text-white/90 truncate">{lang}</span>
+          <span className="text-[10px] font-mono text-white/50 bg-white/[0.06] px-2 py-0.5 rounded-full border border-white/5 shrink-0">
+            {lineCount} {lineCount === 1 ? 'line' : 'lines'} • {sizeKb}
+          </span>
+        </div>
+        <CopyCodeButton code={rawCode} />
+      </div>
+
+      {/* Code viewport with internal scroll */}
+      <div
+        className={`relative transition-all duration-300 ease-out ${
+          isLarge && !expanded ? "max-h-[240px] overflow-hidden" : "max-h-[460px] overflow-y-auto custom-scrollbar"
+        } overflow-x-auto custom-scrollbar p-3.5 font-mono text-[11.5px] leading-relaxed text-emerald-300/95 min-w-0 max-w-full`}
+      >
+        <pre className="whitespace-pre min-w-0 max-w-full">
+          <code>{rawCode}</code>
+        </pre>
+        {isLarge && !expanded && (
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#090b14] to-transparent pointer-events-none" />
+        )}
+      </div>
+
+      {/* Footer bar with Expand toggle + Timestamp */}
+      <div className="px-3.5 py-1.5 bg-white/[0.03] border-t border-white/10 flex items-center justify-between min-w-0 select-none">
+        {isLarge ? (
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className="text-[10.5px] font-mono text-indigo-300 hover:text-indigo-200 flex items-center gap-1 transition-colors cursor-pointer select-none"
+          >
+            {expanded ? (
+              <>
+                <ChevronUp className="w-3.5 h-3.5" />
+                <span>Collapse snippet</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-3.5 h-3.5" />
+                <span>Show full snippet ({lineCount} lines • {sizeKb})</span>
+              </>
+            )}
+          </button>
+        ) : (
+          <div />
+        )}
+
+        <div className={`inline-flex items-center gap-1.5 shrink-0 text-[10px] font-mono ${isMe ? 'text-white/70' : 'text-white/45'}`}>
+          <span>{format(new Date(msg.created_at), "HH:mm")}</span>
+          {msg.edited && <span className="italic text-[9px] text-white/50">edited</span>}
+          {isMe && !msg.id.startsWith("temp-") && (
+            new Date(msg.created_at).getTime() <= maxReadTime ? (
+              <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
+            ) : (
+              <Check className="w-3 h-3 opacity-60" />
+            )
+          )}
+          {msg.id.startsWith("temp-") && (
+            <span className="opacity-40 font-mono">sending…</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CodeCard = ({ code, language }: { code: string; language?: string }) => {
   const [expanded, setExpanded] = useState(false);
   const trimmed = code.trim();
@@ -153,7 +295,7 @@ const CodeCard = ({ code, language }: { code: string; language?: string }) => {
   const sizeKb = (new Blob([trimmed]).size / 1024).toFixed(1) + " KB";
 
   return (
-    <div className="relative group/code my-1.5 w-full rounded-2xl overflow-hidden border border-white/15 bg-[#080b12]/95 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-2xl text-left select-text">
+    <div className="relative group/code my-1.5 w-full min-w-0 max-w-full rounded-2xl overflow-hidden border border-white/15 bg-[#080b12]/95 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-2xl text-left select-text">
       {/* Top Header Bar */}
       <div className="px-3 py-2 bg-white/[0.05] border-b border-white/10 flex items-center justify-between text-xs select-none">
         <div className="flex items-center gap-2 min-w-0">
@@ -169,8 +311,8 @@ const CodeCard = ({ code, language }: { code: string; language?: string }) => {
       {/* Code Content Viewport */}
       <div className={`relative transition-all duration-300 ease-out ${
         isLarge && !expanded ? "max-h-[250px] overflow-hidden" : "max-h-[520px] overflow-auto"
-      } overflow-x-auto custom-scrollbar p-3.5 font-mono text-[11.5px] leading-relaxed text-emerald-300/95`}>
-        <pre className="whitespace-pre">
+      } overflow-x-auto custom-scrollbar p-3.5 font-mono text-[11.5px] leading-relaxed text-emerald-300/95 min-w-0 max-w-full`}>
+        <pre className="whitespace-pre min-w-0 max-w-full">
           <code>{trimmed}</code>
         </pre>
         {isLarge && !expanded && (
@@ -924,13 +1066,13 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       <div 
         ref={scrollAreaRef} 
         onScroll={handleScroll} 
-        className={`flex-1 overflow-y-auto px-4 py-3 transition-colors duration-300 ${
+        className={`flex-1 overflow-y-auto overflow-x-hidden px-4 py-3 transition-colors duration-300 min-w-0 w-full ${
           chatBg === "dots" ? "chat-bg-dots" :
           chatBg === "grid" ? "chat-bg-grid" :
           chatBg === "lines" ? "chat-bg-lines" : "chat-bg-none"
         }`}
       >
-        <div className="max-w-4xl mx-auto w-full space-y-3">
+        <div className="max-w-4xl mx-auto w-full space-y-3 min-w-0">
           {/* Framer-inspired Encrypted Header Pill */}
           <div className="flex items-center justify-center my-2 select-none">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/50 border border-white/[0.08] backdrop-blur-md text-[10.5px] font-mono text-amber-300/80 shadow-sm select-none">
@@ -943,6 +1085,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           const isMe = msg.sender_id === user?.id;
           const showAvatar = !isMe && (i === displayMessages.length - 1 || displayMessages[i + 1]?.sender_id !== msg.sender_id);
           const senderName = participantNames[msg.sender_id] || (isMe ? (user?.username || "You") : "Unknown");
+          const isCode = !msg.gif_url && isPureCodeMessage(msg.content);
 
           // Date separator
           const prevMsg = i > 0 ? displayMessages[i - 1] : null;
@@ -970,6 +1113,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ type: "spring", stiffness: 420, damping: 28, mass: 0.8 }}
+              className="w-full min-w-0"
             >
               {showDateSep && (
                 <div className="flex items-center justify-center my-4 select-none">
@@ -978,7 +1122,7 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   </div>
                 </div>
               )}
-              <div className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : ''} group`}>
+              <div className={`flex gap-2.5 w-full min-w-0 ${isMe ? 'flex-row-reverse' : 'flex-row'} group`}>
                 {!isMe && (
                   <div className="w-8 shrink-0 flex items-end">
                     {showAvatar && (
@@ -991,25 +1135,30 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   </div>
                 )}
 
-                <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[85%] md:max-w-[75%]`}>
+                <div className={`flex flex-col min-w-0 ${isMe ? 'items-end' : 'items-start'} ${
+                  isCode 
+                    ? "w-full max-w-[84%] sm:max-w-[72%] md:max-w-[540px]" 
+                    : "max-w-[80%] sm:max-w-[68%] md:max-w-[480px]"
+                }`}>
                   {!isMe && showAvatar && isGroup && <span className="text-[10px] font-mono text-white/50 mb-1 ml-1">{senderName}</span>}
 
                   <motion.div 
                     whileHover={{ 
-                      scale: 1.02,
-                      rotateY: isMe ? -4 : 4,
-                      rotateX: 2,
-                      y: -2,
+                      scale: 1.015,
+                      rotateY: isMe ? -2 : 2,
+                      y: -1,
                       boxShadow: isMe 
-                        ? "0 20px 35px -8px rgba(79, 70, 229, 0.45), 0 0 20px rgba(129, 140, 248, 0.3)" 
-                        : "0 20px 35px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 255, 255, 0.08)"
+                        ? "0 18px 30px -8px rgba(79, 70, 229, 0.45)" 
+                        : "0 18px 30px -8px rgba(0, 0, 0, 0.6)"
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
                     style={{ transformPerspective: 800, transformOrigin: isMe ? "right center" : "left center" }}
-                    className={`relative min-w-fit transition-all ${
-                      isMe 
-                        ? 'chat-bubble-sent' 
-                        : 'chat-bubble-received'
+                    className={`relative min-w-0 max-w-full transition-all ${
+                      isCode 
+                        ? 'w-full' 
+                        : isMe 
+                          ? 'chat-bubble-sent' 
+                          : 'chat-bubble-received'
                     }`}
                   >
                     {/* Reply preview */}
@@ -1050,65 +1199,28 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                       </motion.div>
                     )}
 
-                    {msg.gif_url ? (
+                    {isCode ? (
+                      <CodeBubble msg={msg} isMe={isMe} maxReadTime={maxReadTime} />
+                    ) : msg.gif_url ? (
                       <div className="space-y-1">
                         <div className="rounded-xl overflow-hidden mt-0.5 max-w-[240px] border border-white/10 shadow-lg">
                           <img src={msg.gif_url.replace('[GIF] ', '')} alt="GIF" className="w-full h-auto" loading="lazy" />
                         </div>
-                        <div className={`flex items-center gap-1.5 justify-end text-[10px] font-mono select-none ${isMe ? 'text-white/75' : 'text-white/45'}`}>
-                          <span>{format(new Date(msg.created_at), "HH:mm")}</span>
-                          {msg.edited && <span className="italic text-[9px] text-white/50">edited</span>}
-                          {isMe && !msg.id.startsWith("temp-") && (
-                            new Date(msg.created_at).getTime() <= maxReadTime ? (
-                              <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
-                            ) : (
-                              <Check className="w-3 h-3 opacity-60" />
-                            )
-                          )}
-                          {msg.id.startsWith("temp-") && (
-                            <span className="opacity-40 font-mono">sending…</span>
-                          )}
-                        </div>
+                        <MessageStatus msg={msg} isMe={isMe} maxReadTime={maxReadTime} />
                       </div>
                     ) : isSingleLineShortText(msg.content) ? (
                       <div className="flex items-end gap-2.5 min-w-0">
                         <span className="text-[13.5px] leading-snug break-words flex-1 min-w-0">
                           {renderInlineMarkdown(msg.content)}
                         </span>
-                        <div className={`inline-flex items-center gap-1 shrink-0 text-[10px] font-mono select-none self-end pb-0.5 ml-auto ${isMe ? 'text-white/75' : 'text-white/45'}`}>
-                          <span>{format(new Date(msg.created_at), "HH:mm")}</span>
-                          {msg.edited && <span className="italic text-[9px] text-white/50">edited</span>}
-                          {isMe && !msg.id.startsWith("temp-") && (
-                            new Date(msg.created_at).getTime() <= maxReadTime ? (
-                              <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
-                            ) : (
-                              <Check className="w-3 h-3 opacity-60" />
-                            )
-                          )}
-                          {msg.id.startsWith("temp-") && (
-                            <span className="opacity-40 font-mono">sending…</span>
-                          )}
-                        </div>
+                        <MessageStatus msg={msg} isMe={isMe} maxReadTime={maxReadTime} />
                       </div>
                     ) : (
                       <div className="flex flex-col gap-1 min-w-0">
                         <div className="text-[13.5px] leading-relaxed break-words">
                           {renderMarkdown(msg.content)}
                         </div>
-                        <div className={`inline-flex items-center gap-1 shrink-0 text-[10px] font-mono select-none self-end ml-auto pt-0.5 ${isMe ? 'text-white/75' : 'text-white/45'}`}>
-                          <span>{format(new Date(msg.created_at), "HH:mm")}</span>
-                          {msg.edited && <span className="italic text-[9px] text-white/50">edited</span>}
-                          {isMe && !msg.id.startsWith("temp-") && (
-                            new Date(msg.created_at).getTime() <= maxReadTime ? (
-                              <CheckCheck className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
-                            ) : (
-                              <Check className="w-3 h-3 opacity-60" />
-                            )
-                          )}
-                          {msg.id.startsWith("temp-") && (
-                            <span className="opacity-40 font-mono">sending…</span>
-                          )}
-                        </div>
+                        <MessageStatus msg={msg} isMe={isMe} maxReadTime={maxReadTime} />
                       </div>
                     )}
 
