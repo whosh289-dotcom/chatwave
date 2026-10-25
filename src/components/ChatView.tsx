@@ -827,13 +827,16 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
                   <motion.div 
                     whileHover={{ 
-                      scale: 1.015,
+                      scale: 1.02,
+                      rotateY: isMe ? -4 : 4,
+                      rotateX: 2,
                       y: -2,
                       boxShadow: isMe 
                         ? "0 20px 35px -8px rgba(79, 70, 229, 0.45), 0 0 20px rgba(129, 140, 248, 0.3)" 
                         : "0 20px 35px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 255, 255, 0.08)"
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                    style={{ transformPerspective: 800, transformOrigin: isMe ? "right center" : "left center" }}
                     className={`relative min-w-[76px] transition-all ${
                       isMe 
                         ? 'chat-bubble-sent' 
@@ -856,17 +859,18 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                     {/* Floating Reaction Bar (Quick Emojis) */}
                     {!msg.id.startsWith("temp-") && (
                       <motion.div 
-                        initial={{ opacity: 0, y: 8, rotateX: -30, z: -20 }}
-                        whileHover={{ z: 35 }}
+                        initial={{ opacity: 0, y: 8, scale: 0.85, rotateX: -25 }}
+                        animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+                        style={{ transformPerspective: 600 }}
                         className={`absolute -top-7 ${isMe ? 'right-0' : 'left-0'} flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0d0f18]/95 backdrop-blur-2xl border border-white/15 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 pointer-events-none group-hover:pointer-events-auto select-none`}
-                        style={{ transformStyle: "preserve-3d" }}
                       >
                         {QUICK_REACTIONS.map((emoji) => (
                           <motion.button
                             key={emoji}
-                            whileHover={{ scale: 1.5, z: 30, rotateY: 18, rotateX: -12, y: -4 }}
-                            whileTap={{ scale: 0.85, z: 0 }}
+                            whileHover={{ scale: 1.55, rotateY: 20, rotateX: -15, y: -4 }}
+                            whileTap={{ scale: 0.85 }}
                             transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                            style={{ transformPerspective: 400 }}
                             onClick={() => toggleReaction(msg.id, emoji)}
                             className="text-xs p-0.5 hover:bg-white/15 rounded-full transition-colors cursor-pointer"
                             title={`React ${emoji}`}
@@ -936,9 +940,10 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                               key={emoji}
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
-                              whileHover={{ scale: 1.15 }}
+                              whileHover={{ scale: 1.2, rotateX: -8, rotateY: 8, y: -2 }}
                               whileTap={{ scale: 0.9 }}
                               transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                              style={{ transformPerspective: 500 }}
                               onClick={() => toggleReaction(msg.id, emoji)}
                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono border transition-all select-none ${
                                 hasMine 
@@ -958,27 +963,26 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                     {!msg.id.startsWith("temp-") && (
                       <div 
                         className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-[#0c0d14]/90 backdrop-blur-2xl rounded-full border border-white/10 p-0.5 shadow-2xl z-10 select-none`}
-                        style={{ transformStyle: "preserve-3d" }}
                       >
-                        <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Reply">
+                        <motion.button whileHover={{ scale: 1.25, rotateY: 15, rotateX: -10, y: -1 }} whileTap={{ scale: 0.85 }} style={{ transformPerspective: 400 }} onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Reply">
                           <Reply className="w-3.5 h-3.5" />
                         </motion.button>
-                        <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => setForwardMsg(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Forward">
+                        <motion.button whileHover={{ scale: 1.25, rotateY: 15, rotateX: -10, y: -1 }} whileTap={{ scale: 0.85 }} style={{ transformPerspective: 400 }} onClick={() => setForwardMsg(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Forward">
                           <Forward className="w-3.5 h-3.5" />
                         </motion.button>
-                        <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => copyMessage(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Copy">
+                        <motion.button whileHover={{ scale: 1.25, rotateY: 15, rotateX: -10, y: -1 }} whileTap={{ scale: 0.85 }} style={{ transformPerspective: 400 }} onClick={() => copyMessage(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Copy">
                           <Copy className="w-3.5 h-3.5" />
                         </motion.button>
                         {isMe && (
                           <>
-                            <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => {
+                            <motion.button whileHover={{ scale: 1.25, rotateY: 15, rotateX: -10, y: -1 }} whileTap={{ scale: 0.85 }} style={{ transformPerspective: 400 }} onClick={() => {
                               setEditingMsg(msg);
                               setNewMessage(msg.content);
                               messageInputRef.current?.focus();
                             }} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Edit">
                               <FilePenLine className="w-3.5 h-3.5" />
                             </motion.button>
-                            <motion.button whileHover={{ scale: 1.25, z: 20, rotateY: 15 }} whileTap={{ scale: 0.85, z: -5 }} onClick={() => setDeleteConfirm(msg)} className="p-1.5 hover:bg-rose-500/20 text-rose-400 rounded-full transition-colors" title="Delete">
+                            <motion.button whileHover={{ scale: 1.25, rotateY: 15, rotateX: -10, y: -1 }} whileTap={{ scale: 0.85 }} style={{ transformPerspective: 400 }} onClick={() => setDeleteConfirm(msg)} className="p-1.5 hover:bg-rose-500/20 text-rose-400 rounded-full transition-colors" title="Delete">
                               <Trash2 className="w-3.5 h-3.5" />
                             </motion.button>
                           </>
@@ -1074,7 +1078,11 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
             <form onSubmit={handleSend} className="flex gap-2 items-end">
               <Popover>
                 <PopoverTrigger asChild>
-                  <motion.div whileHover={{ scale: 1.15, rotate: 12 }} whileTap={{ scale: 0.9 }}>
+                  <motion.div 
+                    whileHover={{ scale: 1.15, rotateZ: 15, rotateY: 20 }} 
+                    whileTap={{ scale: 0.9 }}
+                    style={{ transformPerspective: 500 }}
+                  >
                     <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
                       <Smile className="w-4 h-4" />
                     </Button>
@@ -1087,7 +1095,11 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
               <Popover open={gifPickerOpen} onOpenChange={setGifPickerOpen}>
                 <PopoverTrigger asChild>
-                  <motion.div whileHover={{ scale: 1.15, y: -2 }} whileTap={{ scale: 0.9 }}>
+                  <motion.div 
+                    whileHover={{ scale: 1.15, rotateX: -15, rotateY: -10, y: -2 }} 
+                    whileTap={{ scale: 0.9 }}
+                    style={{ transformPerspective: 500 }}
+                  >
                     <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/[0.08] text-white/55 hover:text-white shrink-0 border border-white/[0.05] transition-all">
                       <ImageIcon className="w-4 h-4" />
                     </Button>
@@ -1124,8 +1136,9 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               />
 
               <motion.div 
-                whileHover={{ scale: 1.08 }} 
+                whileHover={{ scale: 1.1, rotateY: 15, rotateZ: -5 }} 
                 whileTap={{ scale: 0.92 }}
+                style={{ transformPerspective: 500 }}
                 animate={newMessage.trim() ? { scale: [1, 1.03, 1] } : {}}
                 transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
               >
@@ -1154,10 +1167,11 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       <AnimatePresence>
         {showDetailsDrawer && (
           <motion.div
-            initial={{ width: 0, opacity: 0, x: 20 }}
-            animate={{ width: 280, opacity: 1, x: 0 }}
-            exit={{ width: 0, opacity: 0, x: 20 }}
-            transition={{ type: "spring", stiffness: 420, damping: 30 }}
+            initial={{ width: 0, opacity: 0, rotateY: 12, x: 20 }}
+            animate={{ width: 280, opacity: 1, rotateY: 0, x: 0 }}
+            exit={{ width: 0, opacity: 0, rotateY: 12, x: 20 }}
+            transition={{ type: "spring", stiffness: 380, damping: 28 }}
+            style={{ transformPerspective: 800, transformOrigin: "right center" }}
             className="hidden md:flex flex-col border-l border-white/[0.08] bg-[#0a0c14]/95 backdrop-blur-2xl p-5 overflow-y-auto shrink-0 z-20"
           >
             {/* Header close button */}
@@ -1170,14 +1184,20 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
             {/* Profile Avatar Large */}
             <div className="flex flex-col items-center text-center mt-5 mb-5">
-              <Avatar className="h-20 w-20 rounded-2xl border-2 border-white/10 p-0.5 bg-gradient-to-tr from-indigo-500/30 to-purple-500/25 shadow-xl">
-                {convMeta.logo_url ? (
-                  <AvatarImage src={convMeta.logo_url} alt={headerTitle} className="object-cover rounded-[14px]" />
-                ) : null}
-                <AvatarFallback className="bg-transparent text-indigo-300 font-bold font-heading text-2xl">
-                  {isGroup ? <Users className="w-8 h-8" /> : headerTitle[0]?.toUpperCase() || "?"}
-                </AvatarFallback>
-              </Avatar>
+              <motion.div 
+                whileHover={{ scale: 1.08, rotateY: 14, rotateX: -8 }} 
+                transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                style={{ transformPerspective: 600 }}
+              >
+                <Avatar className="h-20 w-20 rounded-2xl border-2 border-white/10 p-0.5 bg-gradient-to-tr from-indigo-500/30 to-purple-500/25 shadow-xl">
+                  {convMeta.logo_url ? (
+                    <AvatarImage src={convMeta.logo_url} alt={headerTitle} className="object-cover rounded-[14px]" />
+                  ) : null}
+                  <AvatarFallback className="bg-transparent text-indigo-300 font-bold font-heading text-2xl">
+                    {isGroup ? <Users className="w-8 h-8" /> : headerTitle[0]?.toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>
+              </motion.div>
               <h3 className="font-heading font-bold text-base text-white mt-3 leading-tight">{headerTitle}</h3>
               <p className="text-xs text-white/40 font-mono mt-0.5">
                 {otherUser ? `@${otherUser.username || "user"}` : `${memberCount} members`}

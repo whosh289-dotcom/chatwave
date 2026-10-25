@@ -135,7 +135,11 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
         <div className="flex items-center justify-between mb-3.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <motion.div 
+                whileHover={{ scale: 1.025, rotateX: -3, rotateY: 3, y: -1 }} 
+                whileTap={{ scale: 0.97 }}
+                style={{ transformPerspective: 800 }}
+              >
                 <Button variant="ghost" className="flex items-center gap-2.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-xl border border-white/[0.08] hover:border-white/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.2)] transition-all backdrop-blur-md">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/30 to-purple-500/25 border border-white/15 flex items-center justify-center p-0.5 shadow-sm">
                     <Avatar className="w-full h-full rounded-[6px]">
@@ -241,8 +245,9 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
             return (
               <motion.button
                 key={tab.id}
-                whileHover={{ scale: 1.06 }}
+                whileHover={{ scale: 1.08, rotateX: -6, y: -1 }}
                 whileTap={{ scale: 0.94 }}
+                style={{ transformPerspective: 600 }}
                 onClick={() => setFilterTab(tab.id)}
                 className={`relative px-3 py-1 rounded-full text-[11px] font-medium font-heading transition-colors shrink-0 flex items-center gap-1.5 z-10 ${
                   isActive ? "text-white font-semibold" : "text-white/50 hover:text-white/80"
@@ -299,17 +304,17 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                     layout
                     whileHover={{ 
                       x: 6, 
-                      scale: 1.02, 
+                      scale: 1.025, 
                       rotateY: -4, 
-                      rotateX: 1.5, 
-                      z: 16,
+                      rotateX: 1.8, 
+                      y: -1,
                       boxShadow: isSelected
                         ? "0 20px 40px -6px rgba(99,102,241,0.45), inset 0 1px 0 rgba(255,255,255,0.3)"
-                        : "0 12px 28px -4px rgba(0,0,0,0.6), 0 0 16px rgba(99,102,241,0.18)"
+                        : "0 14px 30px -4px rgba(0,0,0,0.65), 0 0 18px rgba(99,102,241,0.2)"
                     }}
-                    whileTap={{ scale: 0.95, z: -8, rotateX: 3, rotateY: 0 }}
+                    whileTap={{ scale: 0.96, rotateX: 2.5, rotateY: 0 }}
                     transition={{ type: "spring", stiffness: 420, damping: 24 }}
-                    style={{ transformStyle: "preserve-3d" }}
+                    style={{ transformPerspective: 800 }}
                     onClick={() => onSelectConversation(conv.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left border relative overflow-hidden ${
                       isSelected
