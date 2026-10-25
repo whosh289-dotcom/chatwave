@@ -23,53 +23,16 @@ const Chat = () => {
         </div>
 
         {/* Main Conversation Stream */}
-        <div 
-          className={`flex-1 bg-transparent ${!selectedConversation ? "hidden md:flex" : "flex"} relative overflow-hidden perspective-1200`}
-          style={{ perspective: 1200, transformStyle: "preserve-3d" }}
-        >
+        <div className={`flex-1 bg-transparent ${!selectedConversation ? "hidden md:flex" : "flex"} relative overflow-hidden flex flex-col`}>
           <AnimatePresence mode="wait">
             {selectedConversation ? (
               <motion.div
                 key={selectedConversation}
-                initial={{ 
-                  opacity: 0, 
-                  scale: 0.86, 
-                  z: -160, 
-                  rotateY: -9, 
-                  rotateX: 5, 
-                  y: 28,
-                  filter: "blur(4px)"
-                }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: 1, 
-                  z: 0, 
-                  rotateY: 0, 
-                  rotateX: 0, 
-                  y: 0,
-                  filter: "blur(0px)"
-                }}
-                exit={{ 
-                  opacity: 0, 
-                  scale: 0.88, 
-                  z: -120, 
-                  rotateY: 9, 
-                  rotateX: -4, 
-                  y: -20,
-                  filter: "blur(4px)",
-                  transition: { duration: 0.18, ease: "easeIn" }
-                }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 340, 
-                  damping: 24, 
-                  mass: 0.7 
-                }}
-                style={{ 
-                  transformStyle: "preserve-3d", 
-                  transformOrigin: "left center" 
-                }}
-                className="flex-1 h-full overflow-hidden flex flex-col"
+                initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: -10 }}
+                transition={{ type: "spring", stiffness: 420, damping: 28, mass: 0.6 }}
+                className="flex-1 h-full w-full overflow-hidden flex flex-col"
               >
                 <ChatView
                   conversationId={selectedConversation}
@@ -80,12 +43,11 @@ const Chat = () => {
               /* Elevated Framer-Style Empty State Showcase */
               <motion.div
                 key="empty-state"
-                initial={{ opacity: 0, scale: 0.94, z: -50 }}
-                animate={{ opacity: 1, scale: 1, z: 0 }}
-                exit={{ opacity: 0, scale: 0.92, z: -80, rotateY: -8, filter: "blur(3px)" }}
-                transition={{ type: "spring", stiffness: 350, damping: 26 }}
-                style={{ transformStyle: "preserve-3d" }}
-                className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 relative overflow-hidden bg-[#08090f]/90"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.18 }}
+                className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 relative overflow-hidden bg-[#08090f]/90 w-full h-full"
               >
                 {/* Subtle Ambient WhatsApp Doodle Background */}
                 <div className="absolute inset-0 chat-bg-doodle opacity-35 pointer-events-none" />

@@ -754,14 +754,14 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       <div 
         ref={scrollAreaRef} 
         onScroll={handleScroll} 
-        className={`flex-1 overflow-y-auto px-4 py-3 perspective-1200 transition-colors duration-300 ${
+        className={`flex-1 overflow-y-auto px-4 py-3 transition-colors duration-300 ${
           chatBg === "doodle" ? "chat-bg-doodle" :
           chatBg === "dots" ? "chat-bg-dots" :
           chatBg === "grid" ? "chat-bg-grid" :
           chatBg === "lines" ? "chat-bg-lines" : "chat-bg-none"
         }`}
       >
-        <div className="max-w-4xl mx-auto w-full space-y-3 preserve-3d">
+        <div className="max-w-4xl mx-auto w-full space-y-3">
           {/* Framer-inspired Encrypted Header Pill */}
           <div className="flex items-center justify-center my-2 select-none">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/50 border border-white/[0.08] backdrop-blur-md text-[10.5px] font-mono text-amber-300/80 shadow-sm select-none">
@@ -798,10 +798,9 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           return (
             <motion.div 
               key={msg.id}
-              initial={{ opacity: 0, y: 14, rotateX: 20, rotateY: isMe ? -6 : 6, z: -25 }}
-              animate={{ opacity: 1, y: 0, rotateX: 0, rotateY: 0, z: 0 }}
-              transition={{ type: "spring", stiffness: 380, damping: 26, mass: 0.8 }}
-              style={{ transformStyle: "preserve-3d" }}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 420, damping: 28, mass: 0.8 }}
             >
               {showDateSep && (
                 <div className="flex items-center justify-center my-4 select-none">
@@ -828,16 +827,13 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
 
                   <motion.div 
                     whileHover={{ 
-                      rotateX: isMe ? 2.5 : -2.5, 
-                      rotateY: isMe ? -5 : 5, 
-                      z: 16,
                       scale: 1.015,
+                      y: -2,
                       boxShadow: isMe 
                         ? "0 20px 35px -8px rgba(79, 70, 229, 0.45), 0 0 20px rgba(129, 140, 248, 0.3)" 
                         : "0 20px 35px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 255, 255, 0.08)"
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                    style={{ transformStyle: "preserve-3d" }}
                     className={`relative min-w-[76px] transition-all ${
                       isMe 
                         ? 'chat-bubble-sent' 
@@ -928,11 +924,13 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                       <div className={`flex flex-wrap gap-1 mt-1.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
                         {Object.entries(
                           (reactions[msg.id] || []).reduce((acc, r) => {
-                            acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                            if (r && r.emoji) {
+                              acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                            }
                             return acc;
                           }, {} as Record<string, number>)
                         ).map(([emoji, count]) => {
-                          const hasMine = (reactions[msg.id] || []).some(r => r.user_id === user?.id && r.emoji === emoji);
+                          const hasMine = (reactions[msg.id] || []).some(r => r && r.user_id === user?.id && r.emoji === emoji);
                           return (
                             <motion.button
                               key={emoji}
