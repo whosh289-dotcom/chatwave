@@ -94,11 +94,12 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
 
   const getAvatarGradient = (name: string | null) => {
     const gradients = [
-      "from-indigo-500/25 to-purple-500/20 text-indigo-300 border-indigo-500/20",
-      "from-cyan-500/25 to-blue-500/20 text-cyan-300 border-cyan-500/20",
-      "from-emerald-500/25 to-teal-500/20 text-emerald-300 border-emerald-500/20",
-      "from-rose-500/25 to-pink-500/20 text-rose-300 border-rose-500/20",
-      "from-amber-500/25 to-orange-500/20 text-amber-300 border-amber-500/20",
+      "from-indigo-600 to-purple-600 text-white border-indigo-500/30",
+      "from-cyan-600 to-blue-600 text-white border-cyan-500/30",
+      "from-emerald-600 to-teal-600 text-white border-emerald-500/30",
+      "from-rose-600 to-pink-600 text-white border-rose-500/30",
+      "from-amber-500 to-orange-600 text-white border-amber-500/30",
+      "from-purple-600 to-pink-600 text-white border-purple-500/30",
     ];
     if (!name) return gradients[0];
     let hash = 0;
@@ -341,7 +342,7 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
                         {conv.logo_url ? (
                           <AvatarImage src={conv.logo_url} alt={displayName} className="object-cover rounded-[6px]" />
                         ) : null}
-                        <AvatarFallback className="bg-transparent text-xs font-semibold font-heading">
+                        <AvatarFallback className="bg-transparent text-xs font-bold text-white">
                           {conv.memberCount > 2 ? <Users className="w-4 h-4" /> : getInitials(displayName)}
                         </AvatarFallback>
                       </Avatar>

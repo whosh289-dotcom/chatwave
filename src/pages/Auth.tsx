@@ -149,17 +149,17 @@ const Auth = () => {
                   <span className="text-xs font-mono font-bold text-indigo-300">CW</span>
                 </div>
                 <div>
-                  <p className="text-xs font-heading font-semibold text-white">Encrypted Workspace</p>
-                  <p className="text-[10px] font-mono text-emerald-400">● 100% Verified Pipeline</p>
+                  <p className="text-xs font-heading font-semibold text-white">Private Messaging</p>
+                  <p className="text-[10px] text-emerald-400 font-medium">● Direct & Secure</p>
                 </div>
               </div>
-              <span className="text-[10px] font-mono text-white/40">Sub-50ms</span>
+              <span className="text-[10px] text-white/50">Instant</span>
             </div>
 
             <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04] space-y-2">
               <div className="flex justify-end">
                 <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl rounded-br-xs px-3 py-1.5 text-xs shadow-md">
-                  Hey team! ChatWave just upgraded to the latest real-time engine. ✨
+                  Hey! ChatWave is super fast and private. ✨
                 </div>
               </div>
               <div className="flex justify-start">

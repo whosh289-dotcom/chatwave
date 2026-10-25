@@ -528,7 +528,7 @@ const ChatView = ({ conversationId, onBack, onPopOut, isPoppedOut }: ChatViewPro
         const names: Record<string, string> = {};
         const readTimes: Record<string, string> = {};
         meta.otherUsers.forEach((u: any) => {
-          names[u.user_id] = u.display_name;
+          names[u.user_id] = u.display_name || u.username || "Friend";
           readTimes[u.user_id] = u.last_read_at;
         });
         setParticipantNames(names);
@@ -756,10 +756,13 @@ const ChatView = ({ conversationId, onBack, onPopOut, isPoppedOut }: ChatViewPro
 
   const displayMessages = showSearch ? filteredMessages : messages;
 
-  const otherNames = Object.entries(participantNames).filter(([id]) => id !== user?.id).map(([, name]) => name);
-  const headerTitle = convMeta.name || otherNames.join(", ") || "Unknown";
   const memberCount = Object.keys(participantNames).length + 1; // +1 for self
   const isGroup = memberCount > 2;
+  const otherNames = Object.entries(participantNames)
+    .filter(([id]) => id !== user?.id)
+    .map(([, name]) => name)
+    .filter(Boolean);
+  const headerTitle = convMeta.name || (otherNames.length > 0 ? otherNames.join(", ") : isGroup ? "Group Chat" : "Direct Chat");
 
   // Real-time presence detection for 1-on-1 chats
   const otherUser = otherUsersList[0];
@@ -903,11 +906,11 @@ const ChatView = ({ conversationId, onBack, onPopOut, isPoppedOut }: ChatViewPro
         )}
         <div className="flex items-center gap-3 flex-1 cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setShowGroupSettings(true)}>
           <div className="relative shrink-0">
-            <Avatar className="h-9 w-9 rounded-lg border border-white/10 p-0.5 bg-gradient-to-tr from-indigo-500/25 to-purple-500/20">
+            <Avatar className="h-9 w-9 rounded-lg border border-white/15 p-0.5 bg-gradient-to-tr from-indigo-600 to-purple-600 shadow-md">
               {convMeta.logo_url ? (
                 <AvatarImage src={convMeta.logo_url} alt={headerTitle} className="object-cover rounded-[6px]" />
               ) : null}
-              <AvatarFallback className="bg-transparent text-indigo-300 font-semibold font-heading text-xs">
+              <AvatarFallback className="bg-transparent text-white font-bold text-xs">
                 {isGroup ? <Users className="w-4 h-4" /> : headerTitle[0]?.toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
@@ -1190,29 +1193,23 @@ const ChatView = ({ conversationId, onBack, onPopOut, isPoppedOut }: ChatViewPro
                       );
                     })()}
 
-                    {/* Floating Reaction Bar (Quick Emojis) */}
+                    {/* Floating Reaction Bar (Quick Emojis on hover) */}
                     {!msg.id.startsWith("temp-") && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 8, scale: 0.85, rotateX: -25 }}
-                        animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-                        style={{ transformPerspective: 600 }}
-                        className={`absolute -top-7 ${isMe ? 'right-0' : 'left-0'} flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0d0f18]/95 backdrop-blur-2xl border border-white/15 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 pointer-events-none group-hover:pointer-events-auto select-none`}
+                      <div 
+                        className={`absolute -top-7 ${isMe ? 'right-0' : 'left-0'} hidden group-hover:flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0d0f18]/95 backdrop-blur-2xl border border-white/15 shadow-2xl z-20 select-none animate-in fade-in-0 zoom-in-95 duration-150`}
                       >
                         {QUICK_REACTIONS.map((emoji) => (
-                          <motion.button
+                          <button
                             key={emoji}
-                            whileHover={{ scale: 1.55, rotateY: 20, rotateX: -15, y: -4 }}
-                            whileTap={{ scale: 0.85 }}
-                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                            style={{ transformPerspective: 400 }}
+                            type="button"
                             onClick={() => toggleReaction(msg.id, emoji)}
-                            className="text-xs p-0.5 hover:bg-white/15 rounded-full transition-colors cursor-pointer"
+                            className="text-xs p-0.5 hover:bg-white/15 hover:scale-125 rounded-full transition-all cursor-pointer"
                             title={`React ${emoji}`}
                           >
                             {emoji}
-                          </motion.button>
+                          </button>
                         ))}
-                      </motion.div>
+                      </div>
                     )}
 
                     {isCode ? (
@@ -1279,7 +1276,7 @@ const ChatView = ({ conversationId, onBack, onPopOut, isPoppedOut }: ChatViewPro
                     {/* Message actions (hover) */}
                     {!msg.id.startsWith("temp-") && (
                       <div 
-                        className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-[#0c0d14]/90 backdrop-blur-2xl rounded-full border border-white/10 p-0.5 shadow-2xl z-10 select-none`}
+                        className={`absolute ${isMe ? '-left-28' : '-right-28'} top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 bg-[#0c0d14]/90 backdrop-blur-2xl rounded-full border border-white/10 p-0.5 shadow-2xl z-10 select-none animate-in fade-in-0 duration-150`}
                       >
                         <motion.button whileHover={{ scale: 1.25, rotateY: 15, rotateX: -10, y: -1 }} whileTap={{ scale: 0.85 }} style={{ transformPerspective: 400 }} onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-colors" title="Reply">
                           <Reply className="w-3.5 h-3.5" />
