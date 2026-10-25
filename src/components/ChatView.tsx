@@ -9,7 +9,8 @@ import {
   Send, ArrowLeft, FilePenLine, Lock, Settings, Smile, ImageIcon,
   Reply, Trash2, X, MoreVertical, Check, CheckCheck, Forward,
   Phone, Video, Bell, Search, ArrowDown, Copy, Pin, Users, Camera,
-  ShieldAlert, UserX, Loader2, Info, Code2, ChevronDown, ChevronUp, FileCode
+  ShieldAlert, UserX, Loader2, Info, Code2, ChevronDown, ChevronUp, FileCode,
+  ExternalLink, Maximize2
 } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import GroupSettingsDialog from "@/components/GroupSettingsDialog";
@@ -49,6 +50,8 @@ interface Message {
 interface ChatViewProps {
   conversationId: string;
   onBack?: () => void;
+  onPopOut?: () => void;
+  isPoppedOut?: boolean;
 }
 
 const QUICK_REACTIONS = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
@@ -427,7 +430,7 @@ const formatDateSeparator = (dateStr: string) => {
   return format(d, "EEEE, MMMM d, yyyy");
 };
 
-const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
+const ChatView = ({ conversationId, onBack, onPopOut, isPoppedOut }: ChatViewProps) => {
   const { user } = useAuth();
   const { resolvedTheme } = useTheme();
   const { startCall } = useCall();
@@ -1024,6 +1027,19 @@ const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               <Settings className="w-3.5 h-3.5" />
             </Button>
           </motion.div>
+          {onPopOut && (
+            <motion.div whileHover={{ scale: 1.1, y: -1 }} whileTap={{ scale: 0.92 }}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-indigo-400 border border-white/[0.06] transition-all" 
+                onClick={onPopOut} 
+                title="Pop out into floating 3D window"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+              </Button>
+            </motion.div>
+          )}
           <motion.div whileHover={{ scale: 1.1, y: -1 }} whileTap={{ scale: 0.92 }}>
             <Button 
               variant="ghost" 

@@ -31,9 +31,10 @@ interface ChatSidebarProps {
   selectedConversation: string | null;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
+  externalFilterTab?: "all" | "unread" | "direct" | "groups";
 }
 
-const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversation }: ChatSidebarProps) => {
+const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversation, externalFilterTab }: ChatSidebarProps) => {
   const { user, accounts, switchAccount, signOut } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
@@ -65,6 +66,12 @@ const ChatSidebar = ({ selectedConversation, onSelectConversation, onNewConversa
     const interval = setInterval(fetchConversations, 3000); // Poll every 3 seconds
     return () => clearInterval(interval);
   }, [user]);
+
+  useEffect(() => {
+    if (externalFilterTab) {
+      setFilterTab(externalFilterTab);
+    }
+  }, [externalFilterTab]);
 
   const filtered = conversations.filter((c) => {
     // Tab filter
